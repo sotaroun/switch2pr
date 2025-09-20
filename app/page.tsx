@@ -1,4 +1,7 @@
 import Image from "next/image";
+import { homeMetaData } from "./metadata";
+
+export const metadata = homeMetaData;
 
 export default function Home() {
   return (
