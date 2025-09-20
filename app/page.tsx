@@ -1,4 +1,10 @@
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata:Metadata = {
+  title: "Switch2Pr",
+  description: "Switch2Prのトップページ",
+};
 
 export default function Home() {
   return (
