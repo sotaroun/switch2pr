@@ -1,59 +1,60 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X } from "lucide-react"; // ×アイコン用（shadcn/ui などのアイコンライブラリ）
+import { X } from "lucide-react";
 
 type SearchBarProps = {
-  onSearch: (query: string) => void; // 検索ワードを親に通知
-  delay?: number; // デバウンス時間（ms）
+  onSearch: (query: string) => void;
+  delay?: number;
 };
 
 export default function SearchBar({ onSearch, delay = 500 }: SearchBarProps) {
   const [query, setQuery] = useState("");
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 入力が止まったらデバウンス検索
+  // trim処理をまとめる
+  const runSearch = (value: string) => {
+    onSearch(value.trim());
+  };
+
   useEffect(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    if (query.trim() !== "") {
-      timeoutRef.current = setTimeout(() => {
-        onSearch(query.trim());
-      }, delay);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+    timeoutRef.current = setTimeout(() => {
+      runSearch(query);
+    }, delay);
 
-  // Enterキーで即検索
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [query, onSearch, delay]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      onSearch(query.trim());
+      runSearch(query); // 検索時だけ trim される
     }
     if (e.key === "Escape") {
       handleClear();
     }
   };
 
-  // 入力リセット
   const handleClear = () => {
     setQuery("");
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    onSearch("");
+    onSearch(""); // 空文字はそのまま
   };
 
   return (
     <div className="relative w-full max-w-md">
-      {/* ラベル（画面リーダー用） */}
       <label htmlFor="game-search" className="sr-only">
         ゲームを検索
       </label>
-
-      {/* 入力欄 */}
       <input
         id="game-search"
         type="text"
+        role="searchbox"
         placeholder="ゲーム名で検索..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -61,8 +62,6 @@ export default function SearchBar({ onSearch, delay = 500 }: SearchBarProps) {
         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
         aria-label="ゲーム検索"
       />
-
-      {/* クリアボタン（入力がある時だけ表示） */}
       {query && (
         <button
           type="button"
