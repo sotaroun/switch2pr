@@ -1,6 +1,7 @@
 "use client";
 
 import { GameImage } from "@/components/atoms/GameImage";
+import GameOverview from "@/components/atoms/GameOverview";
 
 export default function GameDetailPage() {
   return (
@@ -8,10 +9,14 @@ export default function GameDetailPage() {
       <h1>ゲーム詳細ページ</h1>
       <p>動的ルートでゲームIDを取得します</p>
 
-      {/* テスト用の簡単な表示 */}
-      <div
-        style={{ margin: "20px 0", padding: "20px", border: "1px solid #ccc" }}
-      >
+      {/* GameOverviewコンポーネントのテスト */}
+      <div style={{ margin: "20px 0" }}>
+        <h2>GameOverviewコンポーネント:</h2>
+        <GameOverview />
+      </div>
+
+      {/* GameImageコンポーネントのテスト */}
+      <div style={{ margin: "20px 0" }}>
         <h2>GameImageコンポーネント:</h2>
         <GameImage />
       </div>
