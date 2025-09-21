@@ -1,0 +1,16 @@
+{
+  "1": {
+    "id": 1,
+    "name": "モック：エピック・アドベンチャー",
+    "summaryJa": "謎に満ちた古代遺跡を探検するアクションアドベンチャー…",
+    "summaryEn": "An epic action-adventure set in ancient ruins…",
+    "genres": ["アクション", "アドベンチャー", "パズル"]
+  },
+  "2": {
+    "id": 2,
+    "name": "モック：ダンジョン・ランナー",
+    "summaryJa": null,
+    "summaryEn": "Fast-paced dungeon runner with roguelike elements.",
+    "genres": ["ローグライト", "ラン"]
+  }
+}
