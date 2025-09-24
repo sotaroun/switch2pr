@@ -1,7 +1,6 @@
 "use client";
 
-import { GameImage } from "@/components/atoms/GameImage";
-import GameOverview from "@/components/atoms/GameOverview";
+import GameHeader from "@/components/molecules/GameHeader";
 
 export default function GameDetailPage() {
   return (
@@ -9,16 +8,9 @@ export default function GameDetailPage() {
       <h1>ゲーム詳細ページ</h1>
       <p>動的ルートでゲームIDを取得します</p>
 
-      {/* GameOverviewコンポーネントのテスト */}
+      {/* GameHeaderコンポーネント（画像 + 概要の統合） */}
       <div style={{ margin: "20px 0" }}>
-        <h2>GameOverviewコンポーネント:</h2>
-        <GameOverview />
-      </div>
-
-      {/* GameImageコンポーネントのテスト */}
-      <div style={{ margin: "20px 0" }}>
-        <h2>GameImageコンポーネント:</h2>
-        <GameImage />
+        <GameHeader />
       </div>
 
       {/* 直接的な画像テスト */}
