@@ -10,6 +10,7 @@ import {
   Badge,
   Skeleton,
   SkeletonText,
+  Button,
 } from "@chakra-ui/react";
 
 // ゲーム概要データの型定義（APIレスポンスと一致）
@@ -34,6 +35,7 @@ export default function GameOverview() {
   // ゲームデータとローディング状態を管理
   const [data, setData] = useState<GameOverview | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false); // 説明文の展開状態
 
   // ゲームIDが変更された時にAPIからデータを取得
   useEffect(() => {
@@ -64,7 +66,7 @@ export default function GameOverview() {
     return (
       <Box p={4} borderWidth="1px" borderRadius="xl">
         <Skeleton height="28px" mb={3} /> {/* タイトル用のスケルトン */}
-        <SkeletonText noOfLines={3} spacing="3" /> {/* 概要文用のスケルトン */}
+        <SkeletonText noOfLines={3} /> {/* 概要文用のスケルトン */}
       </Box>
     );
   }
@@ -84,22 +86,40 @@ export default function GameOverview() {
   // 概要文を優先順位で選択（日本語 → 英語 → デフォルトメッセージ）
   const summary = data.summaryJa ?? data.summaryEn ?? "概要情報は未掲載です。";
 
+  // 説明文を3行に制限する処理
+  const shouldTruncate = summary.length > 100; // 大体3行分の文字数
+  const displaySummary =
+    isExpanded || !shouldTruncate ? summary : summary.substring(0, 100) + "...";
+
   // ゲームデータを表示
   return (
     <Box p={4} borderWidth="1px" borderRadius="xl">
       {/* ゲームタイトル */}
-      <Heading size="md" mb={2}>
+      <Heading size="2xl" mb={2}>
         {data.name}
       </Heading>
 
       {/* ゲーム概要（改行を保持して表示） */}
-      <Text whiteSpace="pre-wrap" lineHeight={1.8}>
-        {summary}
+      <Text whiteSpace="pre-wrap" lineHeight={1.8} mb={2}>
+        {displaySummary}
       </Text>
+
+      {/* 続きを読む/閉じるボタン */}
+      {shouldTruncate && (
+        <Button
+          size="sm"
+          variant="link"
+          colorScheme="blue"
+          onClick={() => setIsExpanded(!isExpanded)}
+          mb={3}
+        >
+          {isExpanded ? "閉じる" : "続きを読む"}
+        </Button>
+      )}
 
       {/* ジャンル一覧（存在する場合のみ表示） */}
       {(data.genres?.length ?? 0) > 0 && (
-        <HStack mt={3} spacing={2} wrap="wrap">
+        <HStack mt={3} wrap="wrap">
           {data.genres!.map((g) => (
             <Badge
               key={g}

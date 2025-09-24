@@ -72,5 +72,13 @@ export const GameImage: React.FC = () => {
   if (!coverImageUrl) {
     return <Box>No image</Box>; // 画像がない場合はメッセージを表示
   }
-  return <Image src={coverImageUrl} alt="Game cover" />;
+  return (
+    <Image
+      src={coverImageUrl}
+      alt="Game cover"
+      htmlWidth="400px"
+      htmlHeight="300px"
+      borderRadius="lg"
+    />
+  );
 };
