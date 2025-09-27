@@ -51,12 +51,7 @@ export const GameImage: React.FC = () => {
 
   // コンポーネントが表示された後の処理（gameIdが変更された時に画像を取得）
   useEffect(() => {
-    console.log("useEffect triggered:", { gameId });
-    if (!gameId) {
-      console.log("No gameId, skipping fetch");
-      return;
-    }
-    console.log("Calling fetchCoverImage");
+　　if (!gameId) {return;}
     fetchCoverImage();
   }, [gameId, fetchCoverImage]);
 
@@ -69,9 +64,7 @@ export const GameImage: React.FC = () => {
       </VStack>
     );
   }
-  if (!coverImageUrl) {
-    return <Box>No image</Box>; // 画像がない場合はメッセージを表示
-  }
+  if (!coverImageUrl) {return <Box>No image</Box>; }// 画像がない場合はメッセージを表示
   return (
     <Image
       src={coverImageUrl}
