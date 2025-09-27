@@ -18,9 +18,7 @@ export async function GET(_req: Request, ctx: { params: { id: string } }) {
   const record = (data as Record<string, GameOverview | undefined>)[id];
 
   // データが見つからない場合は404エラーを返す
-  if (!record) {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
-  }
+  if (!record) {return NextResponse.json({ error: "not found" }, { status: 404 });}
 
   // 見つかったゲームデータをJSONで返す（60秒キャッシュ付き）
   return NextResponse.json(record, {
