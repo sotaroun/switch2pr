@@ -92,48 +92,37 @@ export default function GameOverview() {
     isExpanded || !shouldTruncate ? summary : summary.substring(0, 100) + "...";
 
   // ゲームデータを表示
-  return (
-    <Box p={4} borderWidth="1px" borderRadius="xl">
-      {/* ゲームタイトル */}
-      <Heading size="2xl" mb={2}>
-        {data.name}
-      </Heading>
+  const genres = data.genres ?? [];
+const hasGenres = genres.length > 0;
 
-      {/* ゲーム概要（改行を保持して表示） */}
-      <Text whiteSpace="pre-wrap" lineHeight={1.8} mb={2}>
-        {displaySummary}
-      </Text>
+return (
+  <Box p={4} borderWidth="1px" borderRadius="xl">
+    {/* ゲームタイトル */}
+    <Heading size="md" mb={2}>
+      {data.name}
+    </Heading>
 
-      {/* 続きを読む/閉じるボタン */}
-      {shouldTruncate && (
-        <Button
-          size="sm"
-          variant="link"
-          colorScheme="blue"
-          onClick={() => setIsExpanded(!isExpanded)}
-          mb={3}
-        >
-          {isExpanded ? "閉じる" : "続きを読む"}
-        </Button>
-      )}
+    {/* ゲーム概要（改行を保持して表示） */}
+    <Text whiteSpace="pre-wrap" lineHeight={1.8}>
+      {summary}
+    </Text>
 
-      {/* ジャンル一覧（存在する場合のみ表示） */}
-      {(data.genres?.length ?? 0) > 0 && (
-        <HStack mt={3} wrap="wrap">
-          {data.genres!.map((g) => (
-            <Badge
-              key={g}
-              colorScheme="blue"
-              size="lg"
-              cursor="pointer"
-              _hover={{ bg: "blue.600" }}
-              onClick={() => console.log(`ジャンル "${g}" をクリック`)}
-            >
-              {g}
-            </Badge>
-          ))}
-        </HStack>
-      )}
-    </Box>
-  );
-}
+    {/* ジャンル一覧（存在する場合のみ表示） */}
+    {hasGenres && (
+      <HStack mt={3} spacing={2} wrap="wrap">
+        {genres.map((genre) => (
+          <Badge
+            key={genre}
+            colorScheme="blue"
+            size="lg"
+            cursor="pointer"
+            _hover={{ bg: "blue.600" }}
+            onClick={() => console.log(`ジャンル "${genre}" をクリック`)}
+          >
+            {genre}
+          </Badge>
+        ))}
+      </HStack>
+    )}
+  </Box>
+);
