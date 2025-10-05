@@ -1,31 +1,38 @@
 "use client"
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import CategoryTemplate from '../../components/templates/CategoryPage/CategoryTemplate';
 
 interface Game {
   id: string;
   title: string;
   categories: string[];
-  iconUrl: string;
+  iconUrl?: string;
 }
 
 const CategoryPage: React.FC = () => {
+  const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     'アクション', 'RPG', 'シューティング', 'スポーツ', 'パズル'
   ]);
 
   const allCategories = ['アクション', 'RPG', 'シューティング', 'スポーツ', 'パズル'];
   
-  // ダミーゲームデータ
+  // ダミーゲームデータ（将来的にはAPIから取得）
   const allGames: Game[] = [
-    { id: '1', title: 'ゼルダの伝説', categories: ['アクション', 'RPG'], iconUrl: '/games/zelda.jpg' },
-    { id: '2', title: 'スプラトゥーン3', categories: ['シューティング'], iconUrl: '/games/splatoon.jpg' },
-    { id: '3', title: 'マリオカート8', categories: ['スポーツ'], iconUrl: '/games/mariokart.jpg' },
-    { id: '4', title: 'ぷよぷよテトリス', categories: ['パズル'], iconUrl: '/games/puyo.jpg' },
-    { id: '5', title: 'ベヨネッタ3', categories: ['アクション'], iconUrl: '/games/bayonetta.jpg' },
+    { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },
+    { id: '2', title: 'スプラトゥーン3', categories: ['シューティング'] },
+    { id: '3', title: 'マリオカート8 デラックス', categories: ['スポーツ'] },
+    { id: '4', title: 'ぷよぷよテトリス2', categories: ['パズル'] },
+    { id: '5', title: 'ベヨネッタ3', categories: ['アクション'] },
+    { id: '6', title: 'ポケットモンスター スカーレット', categories: ['RPG'] },
+    { id: '7', title: 'スーパーマリオブラザーズ ワンダー', categories: ['アクション'] },
+    { id: '8', title: 'ピクミン4', categories: ['アクション', 'パズル'] },
+    { id: '9', title: 'ファイアーエムブレム エンゲージ', categories: ['RPG'] },
+    { id: '10', title: 'カービィのグルメフェス', categories: ['アクション'] },
   ];
 
-  // 絞り込み処理（即時反映）
+  // カテゴリフィルタリング処理
   const filteredGames = useMemo(() => {
     if (selectedCategories.length === 0) {
       return [];
@@ -33,32 +40,44 @@ const CategoryPage: React.FC = () => {
     return allGames.filter(game => 
       game.categories.some(category => selectedCategories.includes(category))
     );
-  }, [selectedCategories]);
+  }, [selectedCategories, allGames]);
 
+  // カテゴリ選択切り替え
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories(prev => {
       if (prev.includes(category)) {
-        // 解除
         return prev.filter(c => c !== category);
       } else {
-        // 選択
         return [...prev, category];
       }
     });
   };
 
+  // カテゴリ全解除
   const handleReset = () => {
-    // 全解除で一覧が元通り
     setSelectedCategories([]);
+  };
+
+  // 検索からゲーム選択
+  const handleSelectGame = (gameId: string) => {
+    router.push(`/game/${gameId}`);
+  };
+
+  // ゲームカードクリック
+  const handleGameClick = (gameId: string) => {
+    router.push(`/game/${gameId}`);
   };
 
   return (
     <CategoryTemplate
+      games={allGames}
       categories={allCategories}
       selectedCategories={selectedCategories}
       filteredGames={filteredGames}
       onCategoryToggle={handleCategoryToggle}
       onReset={handleReset}
+      onSelectGame={handleSelectGame}
+      onGameClick={handleGameClick}
     />
   );
 };

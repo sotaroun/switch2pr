@@ -1,58 +1,76 @@
 import React from 'react';
-import {
-  Box,
-  Container,
+import { 
+  Box, 
+  Container, 
   Stack,
-  Heading,
-  Text,
-  Grid,
-  Center,
-  Badge,
-  Flex
+  Heading, 
+  Text
 } from "@chakra-ui/react";
-import CategoryFilterOrg from '../../organisms/SearchSection/CategoryFilters';
-import GameCard from '../../molecules/GameCard/GameCard'; // GameCardのパスは環境に合わせて変更
+import CategoryFilterOrg from '../../organisms/SearchSection/CategoryFilter';
+import SearchSection from '../../organisms/SearchSection/SearchSection';
+import GameGrid from '../../organisms/GameSection/GameGrid';
 
 interface Game {
   id: string;
   title: string;
   categories: string[];
-  iconUrl: string;
+  iconUrl?: string;
 }
 
 interface CategoryTemplateProps {
+  // データ
+  games: Game[];
   categories: string[];
   selectedCategories: string[];
   filteredGames: Game[];
+  
+  // イベントハンドラー
   onCategoryToggle: (category: string) => void;
   onReset: () => void;
+  onSelectGame: (gameId: string) => void;
+  onGameClick: (gameId: string) => void;
+  
+  // オプション
+  pageTitle?: string;
+  pageDescription?: string;
 }
 
 const CategoryTemplate: React.FC<CategoryTemplateProps> = ({
+  games,
   categories,
   selectedCategories,
   filteredGames,
   onCategoryToggle,
-  onReset
+  onReset,
+  onSelectGame,
+  onGameClick,
+  pageTitle = "カテゴリから探す",
+  pageDescription = "お好みのジャンルでゲームを絞り込み"
 }) => {
   return (
     <Box minH="100vh" bg="gray.900" color="white">
       <Container maxW="90%" py={8}>
         <Stack direction="column" gap={8}>
-          {/* ヘッダー */}
+          {/* ページヘッダー */}
           <Stack direction="column" gap={4} textAlign="center">
             <Heading 
               as="h1" 
               fontSize={{ base: "3xl", md: "5xl" }} 
               color="white"
             >
-              カテゴリから探す
+              {pageTitle}
             </Heading>
             <Text color="gray.400" fontSize="lg">
-              お好みのジャンルでゲームを絞り込み
+              {pageDescription}
             </Text>
           </Stack>
           
+          {/* 検索セクション */}
+          <SearchSection
+            games={games}
+            onSelectGame={onSelectGame}
+          />
+
           {/* カテゴリフィルター */}
           <CategoryFilterOrg
             categories={categories}
@@ -62,48 +80,10 @@ const CategoryTemplate: React.FC<CategoryTemplateProps> = ({
           />
           
           {/* ゲーム一覧 */}
-          <Box w="full">
-            <Stack direction="column" gap={6}>
-              <Box textAlign="center">
-                <Heading as="h2" size="lg" color="white" mb={2}>
-                  ゲーム一覧 ({filteredGames.length}件)
-                </Heading>
-              </Box>
-              
-              {filteredGames.length > 0 ? (
-                <Grid 
-                  templateColumns={{ 
-                    base: "repeat(2, 1fr)", 
-                    md: "repeat(4, 1fr)", 
-                    lg: "repeat(5, 1fr)" 
-                  }} 
-                  gap={6} 
-                  w="full"
-                >
-                  {filteredGames.map((game) => (
-                    <GameCard
-                      key={game.id}
-                      title={game.title}
-                      categories={game.categories}
-                      iconUrl={game.iconUrl}
-                      onClick={() => console.log(`${game.title} clicked`)}
-                    />
-                  ))}
-                </Grid>
-              ) : (
-                <Center py={12} textAlign="center">
-                  <Stack direction="column" gap={4}>
-                    <Text color="gray.400" fontSize="lg">
-                      条件に合うゲームがありません
-                    </Text>
-                    <Text color="gray.500" fontSize="sm">
-                      別のカテゴリを選択してください
-                    </Text>
-                  </Stack>
-                </Center>
-              )}
-            </Stack>
-          </Box>
+          <GameGrid
+            games={filteredGames}
+            onGameClick={onGameClick}
+          />
         </Stack>
       </Container>
     </Box>
