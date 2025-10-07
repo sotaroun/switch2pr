@@ -1,58 +1,105 @@
-import React from 'react';
-import {
-  Box,
-  Container,
+import React, { memo } from 'react';
+import { 
+  Box, 
+  Container, 
   Stack,
-  Heading,
-  Text,
-  Grid,
-  Center,
-  Badge,
-  Flex
+  Heading, 
+  Text
 } from "@chakra-ui/react";
 import CategoryFilterOrg from '../../organisms/SearchSection/CategoryFilters';
-import GameCard from '../../molecules/GameCard/GameCard'; // GameCardのパスは環境に合わせて変更
-
-interface Game {
-  id: string;
-  title: string;
-  categories: string[];
-  iconUrl: string;
-}
+import SearchSection from '../../organisms/SearchSection/SearchSection';
+import GameGrid from '../../organisms/GameSection/GameGrid';
+import { Game } from '../../../types/game';
 
 interface CategoryTemplateProps {
+  /** 全ゲーム一覧（検索用） */
+  games: Game[];
+  /** 利用可能なカテゴリ一覧 */
   categories: string[];
+  /** 選択中のカテゴリ */
   selectedCategories: string[];
+  /** フィルター済みゲーム一覧 */
   filteredGames: Game[];
+  
+  // イベントハンドラー
+  /** カテゴリ選択切り替え時のハンドラー */
   onCategoryToggle: (category: string) => void;
+  /** カテゴリリセット時のハンドラー */
   onReset: () => void;
+  /** 検索結果選択時のハンドラー */
+  onSelectGame: (gameId: string) => void;
+  /** ゲームカードクリック時のハンドラー */
+  onGameClick: (gameId: string) => void;
+  
+  // カスタマイズオプション
+  /** ページタイトル */
+  pageTitle?: string;
+  /** ページ説明文 */
+  pageDescription?: string;
 }
 
-const CategoryTemplate: React.FC<CategoryTemplateProps> = ({
+/**
+ * カテゴリページ全体のレイアウトを提供するTemplateコンポーネント
+ * - ページヘッダー
+ * - 検索セクション
+ * - カテゴリフィルター
+ * - ゲーム一覧グリッド
+ * 
+ * @example
+ * ```tsx
+ * <CategoryTemplate
+ *   games={allGames}
+ *   categories={allCategories}
+ *   selectedCategories={selected}
+ *   filteredGames={filtered}
+ *   onCategoryToggle={handleToggle}
+ *   onReset={handleReset}
+ *   onSelectGame={handleSelectGame}
+ *   onGameClick={handleGameClick}
+ * />
+ * ```
+ */
+const CategoryTemplate: React.FC<CategoryTemplateProps> = memo(({
+  games,
   categories,
   selectedCategories,
   filteredGames,
   onCategoryToggle,
-  onReset
+  onReset,
+  onSelectGame,
+  onGameClick,
+  pageTitle = "カテゴリから探す",
+  pageDescription = "お好みのジャンルでゲームを絞り込み"
 }) => {
   return (
     <Box minH="100vh" bg="gray.900" color="white">
       <Container maxW="90%" py={8}>
         <Stack direction="column" gap={8}>
-          {/* ヘッダー */}
-          <Stack direction="column" gap={4} textAlign="center">
+          {/* ページヘッダー */}
+          <Stack 
+            direction="column" 
+            gap={4} 
+            textAlign="center"
+            as="header"
+          >
             <Heading 
               as="h1" 
               fontSize={{ base: "3xl", md: "5xl" }} 
               color="white"
             >
-              カテゴリから探す
+              {pageTitle}
             </Heading>
             <Text color="gray.400" fontSize="lg">
-              お好みのジャンルでゲームを絞り込み
+              {pageDescription}
             </Text>
           </Stack>
           
+          {/* 検索セクション */}
+          <SearchSection
+            games={games}
+            onSelectGame={onSelectGame}
+          />
+
           {/* カテゴリフィルター */}
           <CategoryFilterOrg
             categories={categories}
@@ -62,52 +109,16 @@ const CategoryTemplate: React.FC<CategoryTemplateProps> = ({
           />
           
           {/* ゲーム一覧 */}
-          <Box w="full">
-            <Stack direction="column" gap={6}>
-              <Box textAlign="center">
-                <Heading as="h2" size="lg" color="white" mb={2}>
-                  ゲーム一覧 ({filteredGames.length}件)
-                </Heading>
-              </Box>
-              
-              {filteredGames.length > 0 ? (
-                <Grid 
-                  templateColumns={{ 
-                    base: "repeat(2, 1fr)", 
-                    md: "repeat(4, 1fr)", 
-                    lg: "repeat(5, 1fr)" 
-                  }} 
-                  gap={6} 
-                  w="full"
-                >
-                  {filteredGames.map((game) => (
-                    <GameCard
-                      key={game.id}
-                      title={game.title}
-                      categories={game.categories}
-                      iconUrl={game.iconUrl}
-                      onClick={() => console.log(`${game.title} clicked`)}
-                    />
-                  ))}
-                </Grid>
-              ) : (
-                <Center py={12} textAlign="center">
-                  <Stack direction="column" gap={4}>
-                    <Text color="gray.400" fontSize="lg">
-                      条件に合うゲームがありません
-                    </Text>
-                    <Text color="gray.500" fontSize="sm">
-                      別のカテゴリを選択してください
-                    </Text>
-                  </Stack>
-                </Center>
-              )}
-            </Stack>
-          </Box>
+          <GameGrid
+            games={filteredGames}
+            onGameClick={onGameClick}
+          />
         </Stack>
       </Container>
     </Box>
   );
-};
+});
+
+CategoryTemplate.displayName = 'CategoryTemplate';
 
 export default CategoryTemplate;
