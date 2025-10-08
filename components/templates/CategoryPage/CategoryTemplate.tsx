@@ -6,7 +6,7 @@ import {
   Heading, 
   Text
 } from "@chakra-ui/react";
-import CategoryFilterOrg from '../../organisms/SearchSection/CategoryFilters';
+import CategoryFilterOrg from '../../organisms/SearchSection/CategoryFilter';
 import SearchSection from '../../organisms/SearchSection/SearchSection';
 import GameGrid from '../../organisms/GameSection/GameGrid';
 import { Game } from '../../../types/game';
