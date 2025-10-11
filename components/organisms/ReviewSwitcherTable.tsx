@@ -1,0 +1,322 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Box, Stack, Table, Text } from "@chakra-ui/react";
+import { useParams } from "next/navigation";
+
+import { HelpfulVoteButton } from "../atoms/HelpfulVoteButton";
+import { BubbleIcon } from "../atoms/icons/BubbleIcon";
+import { YouTubeIcon } from "../atoms/icons/YouTubeIcon";
+import { ReviewSourceToggle } from "../molecules/review-table/ReviewSourceToggle";
+import { ReviewTableHeader } from "../molecules/review-table/ReviewTableHeader";
+import { baseColumnsMap } from "../molecules/review-table/columns";
+import { sortOptions } from "../molecules/review-table/config";
+import { buildHelpfulStorageKey } from "../molecules/review-table/utils";
+import type { GameReviews, OnelinerReview, Source } from "../molecules/review-table/types";
+
+const HELPFUL_STORAGE_KEY = "switch2pr_helpful_votes";
+
+const tableTitles: Record<Source, string> = {
+  youtube: "YouTube コメント",
+  oneliner: "一言コメント",
+};
+
+const subtitleTemplate: Record<Source, (total: number) => string> = {
+  youtube: (total) => `全${total}件のコメント`,
+  oneliner: (total) => `全${total}件の投稿`,
+};
+
+const headerIconMap: Record<Source, ReactNode> = {
+  youtube: (
+    <YouTubeIcon
+      boxSize="2.5rem"
+      color="#ff6074"
+      bodyColor="#ff3145"
+      accentColor="#ffffff"
+    />
+  ),
+  oneliner: <BubbleIcon boxSize="2.3rem" color="#57c6ff" />,
+};
+
+export default function ReviewSwitcherTable() {
+  const params = useParams();
+  const rawId =
+    (params as Record<string, string | string[] | undefined>).id ??
+    (params as Record<string, string | string[] | undefined>).gameId;
+  const gameId = typeof rawId === "string" ? rawId : null;
+
+  const [src, setSrc] = useState<Source>("youtube");
+  const [reviews, setReviews] = useState<GameReviews>({ youtube: [], oneliner: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [votedKeys, setVotedKeys] = useState<string[]>([]);
+  const [storageHydrated, setStorageHydrated] = useState(false);
+  const [helpfulOverrides, setHelpfulOverrides] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(HELPFUL_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const keys = parsed.filter((item): item is string => typeof item === "string");
+          if (keys.length > 0) {
+            setVotedKeys(keys);
+          }
+        }
+      }
+    } catch {
+      // localStorage が利用できない場合は無視する
+    } finally {
+      setStorageHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!storageHydrated || typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(HELPFUL_STORAGE_KEY, JSON.stringify(votedKeys));
+    } catch {
+      // noop
+    }
+  }, [storageHydrated, votedKeys]);
+
+  const votedSet = useMemo(() => new Set(votedKeys), [votedKeys]);
+
+  const handleHelpfulVote = useCallback(
+    (review: OnelinerReview) => {
+      if (!storageHydrated) return;
+
+      const storageKey = buildHelpfulStorageKey(gameId, review);
+
+      let applied = false;
+      setVotedKeys((prev) => {
+        if (prev.includes(storageKey)) {
+          return prev;
+        }
+        applied = true;
+        return [...prev, storageKey];
+      });
+
+      if (!applied) return;
+
+      setHelpfulOverrides((prev) => {
+        const base = prev[storageKey] ?? review.helpful ?? 0;
+        return { ...prev, [storageKey]: base + 1 };
+      });
+
+      setReviews((prev) => ({
+        ...prev,
+        oneliner: prev.oneliner.map((item) => {
+          const key = buildHelpfulStorageKey(gameId, item);
+          if (key !== storageKey) {
+            return item;
+          }
+          return {
+            ...item,
+            helpful: (item.helpful ?? 0) + 1,
+          };
+        }),
+      }));
+    },
+    [gameId, storageHydrated]
+  );
+
+  const columns = useMemo(() => {
+    const base = baseColumnsMap[src];
+    if (src !== "oneliner") {
+      return base.map((column) => ({ ...column }));
+    }
+
+    return base.map((column) => {
+      if (column.key !== "helpful") {
+        return { ...column };
+      }
+
+      return {
+        ...column,
+        render: (row: OnelinerReview) => {
+          const storageKey = buildHelpfulStorageKey(gameId, row);
+          const isDisabled = !storageHydrated || votedSet.has(storageKey);
+          const count = helpfulOverrides[storageKey] ?? row.helpful ?? 0;
+
+          return (
+            <HelpfulVoteButton
+              count={count}
+              onClick={() => handleHelpfulVote(row)}
+              isDisabled={isDisabled}
+            />
+          );
+        },
+      };
+    });
+  }, [gameId, handleHelpfulVote, helpfulOverrides, src, storageHydrated, votedSet]);
+
+  const rows = reviews[src];
+  const total = rows.length;
+
+  useEffect(() => {
+    if (!gameId) {
+      setLoading(false);
+      setError("ゲームIDが見つかりません。");
+      setReviews({ youtube: [], oneliner: [] });
+      return;
+    }
+
+    let active = true;
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/mocks/${gameId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("failed");
+        return res.json();
+      })
+      .then((json: { reviews?: Partial<GameReviews> } | null) => {
+        if (!active || !json) return;
+        const payload = json.reviews ?? {};
+        setReviews({
+          youtube: payload.youtube ?? [],
+          oneliner: payload.oneliner ?? [],
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setError("口コミデータの取得に失敗しました。");
+        setReviews({ youtube: [], oneliner: [] });
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [gameId]);
+
+  const subtitle = subtitleTemplate[src](total);
+  const headerIcon = headerIconMap[src];
+  const currentSortTabs = sortOptions[src];
+
+  return (
+    <Stack spacing={6} align="center" w="full">
+      <ReviewSourceToggle value={src} onChange={setSrc} />
+
+      <Box
+        w="full"
+        maxW="960px"
+        bg="rgba(16, 22, 54, 0.94)"
+        borderRadius="2xl"
+        border="1px solid rgba(94, 126, 255, 0.22)"
+        boxShadow="0 24px 60px rgba(24, 64, 216, 0.25)"
+        px={{ base: 4, md: 6 }}
+        py={{ base: 5, md: 6 }}
+        textAlign="left"
+      >
+        <Stack spacing={5}>
+          <ReviewTableHeader
+            icon={headerIcon}
+            title={tableTitles[src]}
+            subtitle={subtitle}
+            tabs={currentSortTabs}
+          />
+
+          {error && (
+            <Text color="rgba(255, 102, 132, 0.85)" fontSize="sm">
+              {error}
+            </Text>
+          )}
+
+          <Box borderRadius="xl" overflowX="auto">
+            <Table.Root
+              size="md"
+              variant="simple"
+              sx={{
+                th: {
+                  fontSize: "sm",
+                  fontWeight: "semibold",
+                  textTransform: "none",
+                  letterSpacing: "0.02em",
+                  color: "#FDFEFF",
+                  background:
+                    "linear-gradient(135deg, rgba(24, 38, 96, 0.9), rgba(19, 33, 82, 0.9))",
+                  borderColor: "rgba(52, 75, 160, 0.75)",
+                  textShadow: "0 0 8px rgba(8, 14, 40, 0.6)",
+                },
+                td: {
+                  fontSize: "sm",
+                  color: "rgba(255,255,255,0.88)",
+                  borderColor: "rgba(82, 108, 175, 0.28)",
+                  borderBottom: "1px solid rgba(82, 108, 175, 0.28)",
+                },
+                "tbody tr:last-of-type td": {
+                  borderBottomWidth: 0,
+                },
+              }}
+            >
+              <Table.Header>
+                <Table.Row>
+                  {columns.map((column) => (
+                    <Table.ColumnHeader
+                      key={String(column.key)}
+                      color="rgba(253, 254, 255, 0.96)"
+                    >
+                      {column.header}
+                    </Table.ColumnHeader>
+                  ))}
+                </Table.Row>
+              </Table.Header>
+
+              <Table.Body>
+                {loading ? (
+                  <Table.Row>
+                    <Table.Cell colSpan={columns.length}>
+                      <Text color="rgba(255,255,255,0.65)">
+                        口コミを読み込み中...
+                      </Text>
+                    </Table.Cell>
+                  </Table.Row>
+                ) : rows.length === 0 ? (
+                  <Table.Row>
+                    <Table.Cell colSpan={columns.length}>
+                      <Text color="rgba(255,255,255,0.6)">
+                        このソースの口コミはまだありません。
+                      </Text>
+                    </Table.Cell>
+                  </Table.Row>
+                ) : (
+                  rows.map((row, index) => (
+                    <Table.Row
+                      key={`${src}-${index}`}
+                      bg="rgba(255,255,255,0.015)"
+                      _hover={{ bg: "rgba(255,255,255,0.05)" }}
+                      transition="background 0.2s ease"
+                    >
+                      {columns.map((column) => (
+                        <Table.Cell key={String(column.key)}>
+                          {column.render
+                            ? column.render(row as never, index)
+                            : (row as Record<string, ReactNode>)[
+                                column.key as string
+                              ] ?? ""}
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  ))
+                )}
+              </Table.Body>
+            </Table.Root>
+          </Box>
+        </Stack>
+      </Box>
+    </Stack>
+  );
+}
