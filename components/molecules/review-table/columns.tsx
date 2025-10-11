@@ -8,36 +8,45 @@ import { formatDate } from "./utils";
 export const baseColumnsMap: ColumnsMap = {
   youtube: [
     {
-      key: "user",
-      header: "ユーザー",
-      render: (row) => (
-        <Text fontWeight="semibold" color="rgba(255, 255, 255, 0.97)">
-          {row.user}
-        </Text>
-      ),
-    },
-    {
-      key: "comment",
-      header: "コメント",
-      render: (row) => (
-        <Text color="rgba(240, 244, 255, 0.95)" fontSize="sm" lineHeight={1.6}>
-          {row.comment}
-        </Text>
-      ),
-    },
-    {
       key: "title",
       header: "動画タイトル",
       render: (row) => (
-        <Text color="rgba(255, 240, 246, 0.94)" fontSize="sm" fontWeight="semibold">
+        <Text
+          as="a"
+          href={row.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          color="rgba(255, 240, 246, 0.94)"
+          fontSize="sm"
+          fontWeight="semibold"
+          textDecoration="underline"
+        >
           {row.title}
         </Text>
       ),
     },
     {
-      key: "channel",
+      key: "channelTitle",
       header: "チャンネル",
-      render: (row) => <ChannelTag name={row.channel} />,
+      render: (row) => <ChannelTag name={row.channelTitle} />,
+    },
+    {
+      key: "description",
+      header: "概要",
+      render: (row) => (
+        <Text color="rgba(240, 244, 255, 0.95)" fontSize="sm" lineHeight={1.6}>
+          {row.description || "説明は用意されていません。"}
+        </Text>
+      ),
+    },
+    {
+      key: "publishedAt",
+      header: "公開日",
+      render: (row) => (
+        <Text color="rgba(230, 240, 255, 0.88)" fontSize="sm">
+          {formatDate(row.publishedAt)}
+        </Text>
+      ),
     },
   ],
   oneliner: [
