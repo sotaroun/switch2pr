@@ -1,42 +1,68 @@
-import { Box, Text } from "@chakra-ui/react";
-import { ChannelTag } from "../../atoms/ChannelTag";
+import { Box, Text, Tooltip } from "@chakra-ui/react";
 import { StarRatingDisplay } from "../../atoms/StarRatingDisplay";
 import { StatusBadge } from "../../atoms/StatusBadge";
 import type { ColumnsMap } from "./types";
 import { formatDate } from "./utils";
+
+const renderTruncatedLink = (
+  text: string,
+  href: string,
+  color: string,
+  maxWidth: string = "240px"
+) => (
+  <Tooltip label={text} hasArrow placement="top" isDisabled={text.length <= 16}>
+    <Text
+      as="a"
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      color={color}
+      fontSize="sm"
+      fontWeight="semibold"
+      textDecoration="underline"
+      maxW={maxWidth}
+      whiteSpace="nowrap"
+      overflow="hidden"
+      textOverflow="ellipsis"
+      display="inline-block"
+    >
+      {text}
+    </Text>
+  </Tooltip>
+);
 
 export const baseColumnsMap: ColumnsMap = {
   youtube: [
     {
       key: "videoTitle",
       header: "動画タイトル",
-      render: (row) => (
-        <Text
-          as="a"
-          href={row.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          color={row.isOfficialLike ? "rgba(255, 240, 246, 0.94)" : "rgba(240, 244, 255, 0.9)"}
-          fontSize="sm"
-          fontWeight="semibold"
-          textDecoration="underline"
-        >
-          {row.videoTitle}
-        </Text>
-      ),
+      render: (row) =>
+        renderTruncatedLink(
+          row.videoTitle,
+          row.url,
+          row.isOfficialLike ? "rgba(255, 240, 246, 0.94)" : "rgba(240, 244, 255, 0.9)"
+        ),
     },
     {
       key: "channelTitle",
       header: "チャンネル",
-      render: (row) => <ChannelTag name={row.channelTitle} href={row.channelUrl} />,
+      render: (row) =>
+        renderTruncatedLink(
+          row.channelTitle,
+          row.channelUrl,
+          "rgba(255, 236, 238, 0.96)",
+          "200px"
+        ),
     },
     {
       key: "comment",
       header: "コメント",
       render: (row) => (
-        <Text color="rgba(240, 244, 255, 0.95)" fontSize="sm" lineHeight={1.6}>
-          {row.comment}
-        </Text>
+        <Tooltip label={row.comment} hasArrow placement="top" isDisabled={row.comment.length <= 60}>
+          <Text color="rgba(240, 244, 255, 0.95)" fontSize="sm" lineHeight={1.6} noOfLines={2}>
+            {row.comment}
+          </Text>
+        </Tooltip>
       ),
     },
     {
