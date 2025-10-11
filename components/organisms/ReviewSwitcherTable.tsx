@@ -12,7 +12,8 @@ import { ReviewTableHeader } from "../molecules/review-table/ReviewTableHeader";
 import { baseColumnsMap } from "../molecules/review-table/columns";
 import { sortOptions } from "../molecules/review-table/config";
 import { buildHelpfulStorageKey } from "../molecules/review-table/utils";
-import type { GameReviews, OnelinerReview, Source } from "../molecules/review-table/types";
+import type { GameReviews, OnelinerReview, Source, YoutubeReview } from "../molecules/review-table/types";
+import type { GameDetailResponse } from "@/types/game-detail";
 
 const HELPFUL_STORAGE_KEY = "switch2pr_helpful_votes";
 
@@ -174,28 +175,92 @@ export default function ReviewSwitcherTable() {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/mocks/${gameId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("failed");
-        return res.json();
-      })
-      .then((json: { reviews?: Partial<GameReviews> } | null) => {
-        if (!active || !json) return;
-        const payload = json.reviews ?? {};
+    const fetchData = async () => {
+      try {
+        let gameName: string | null = null;
+        let youtubeReviews: YoutubeReview[] = [];
+        let onelinerReviews: OnelinerReview[] = [];
+        const warnings: string[] = [];
+
+        try {
+          const igdbResponse = await fetch(`/api/igdb/${gameId}`, { cache: "no-store" });
+          if (igdbResponse.ok) {
+            const igdbJson = (await igdbResponse.json()) as GameDetailResponse;
+            gameName = igdbJson.name;
+          } else {
+            warnings.push("IGDBからゲーム情報を取得できませんでした。");
+          }
+        } catch (error) {
+          console.error("Failed to fetch IGDB detail", error);
+          warnings.push("IGDBの取得中にエラーが発生しました。");
+        }
+
+        if (gameName) {
+          try {
+            const youtubeResponse = await fetch(
+              `/api/youtube/reviews?query=${encodeURIComponent(gameName)}`,
+              { cache: "no-store" }
+            );
+            if (youtubeResponse.ok) {
+              const youtubeJson = (await youtubeResponse.json()) as {
+                items?: YoutubeReview[];
+              };
+              youtubeReviews = youtubeJson.items ?? [];
+            } else {
+              warnings.push("YouTubeのレビュー取得に失敗しました。");
+            }
+          } catch (error) {
+            console.error("Failed to fetch YouTube reviews", error);
+            warnings.push("YouTubeレビュー取得中にエラーが発生しました。");
+          }
+        } else {
+          warnings.push("YouTube検索用のゲームタイトルが見つかりません。");
+        }
+
+        try {
+          const mockResponse = await fetch(`/api/mocks/${gameId}`, { cache: "no-store" });
+          if (mockResponse.ok) {
+            const mockJson = (await mockResponse.json()) as {
+              reviews?: Partial<GameReviews>;
+            };
+            onelinerReviews = mockJson.reviews?.oneliner ?? [];
+          } else {
+            warnings.push("一言コメントのモック取得に失敗しました。");
+          }
+        } catch (error) {
+          console.error("Failed to fetch oneliner reviews", error);
+          warnings.push("一言コメント取得中にエラーが発生しました。");
+        }
+
+        if (!active) {
+          return;
+        }
+
         setReviews({
-          youtube: payload.youtube ?? [],
-          oneliner: payload.oneliner ?? [],
+          youtube: youtubeReviews,
+          oneliner: onelinerReviews,
         });
-      })
-      .catch(() => {
+
+        if (warnings.length > 0 && youtubeReviews.length === 0 && onelinerReviews.length === 0) {
+          setError(warnings.join(" "));
+        } else if (warnings.length > 0) {
+          setError(warnings.join(" "));
+        } else {
+          setError(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reviews", error);
         if (!active) return;
         setError("口コミデータの取得に失敗しました。");
         setReviews({ youtube: [], oneliner: [] });
-      })
-      .finally(() => {
-        if (!active) return;
-        setLoading(false);
-      });
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void fetchData();
 
     return () => {
       active = false;

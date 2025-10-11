@@ -1,43 +1,92 @@
 import { Box, Text } from "@chakra-ui/react";
-import { ChannelTag } from "../../atoms/ChannelTag";
 import { StarRatingDisplay } from "../../atoms/StarRatingDisplay";
 import { StatusBadge } from "../../atoms/StatusBadge";
 import type { ColumnsMap } from "./types";
 import { formatDate } from "./utils";
 
+const renderTruncatedLink = (
+  text: string,
+  href: string,
+  color: string,
+  maxWidth: string = "240px"
+) => (
+  <Text
+    as="a"
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    color={color}
+    fontSize="sm"
+    fontWeight="semibold"
+    textDecoration="underline"
+    maxW={maxWidth}
+    overflow="hidden"
+    display="-webkit-box"
+    style={{ WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
+    title={text}
+  >
+    {text}
+  </Text>
+);
+
 export const baseColumnsMap: ColumnsMap = {
   youtube: [
     {
-      key: "user",
-      header: "ユーザー",
-      render: (row) => (
-        <Text fontWeight="semibold" color="rgba(255, 255, 255, 0.97)">
-          {row.user}
-        </Text>
-      ),
+      key: "videoTitle",
+      header: "動画タイトル",
+      render: (row) =>
+        renderTruncatedLink(
+          row.videoTitle,
+          row.url,
+          row.isOfficialLike ? "rgba(255, 240, 246, 0.94)" : "rgba(240, 244, 255, 0.9)"
+        ),
+    },
+    {
+      key: "channelTitle",
+      header: "チャンネル",
+      render: (row) =>
+        renderTruncatedLink(
+          row.channelTitle,
+          row.channelUrl,
+          "rgba(255, 236, 238, 0.96)",
+          "200px"
+        ),
     },
     {
       key: "comment",
       header: "コメント",
       render: (row) => (
-        <Text color="rgba(240, 244, 255, 0.95)" fontSize="sm" lineHeight={1.6}>
+        <Text
+          color="rgba(240, 244, 255, 0.95)"
+          fontSize="sm"
+          lineHeight={1.6}
+          maxW="560px"
+          overflow="hidden"
+          display="-webkit-box"
+          style={{ WebkitLineClamp: 4, WebkitBoxOrient: "vertical" }}
+          title={row.comment}
+        >
           {row.comment}
         </Text>
       ),
     },
     {
-      key: "title",
-      header: "動画タイトル",
+      key: "author",
+      header: "投稿者",
       render: (row) => (
-        <Text color="rgba(255, 240, 246, 0.94)" fontSize="sm" fontWeight="semibold">
-          {row.title}
+        <Text color="rgba(235, 244, 255, 0.88)" fontSize="sm">
+          {row.author}
         </Text>
       ),
     },
     {
-      key: "channel",
-      header: "チャンネル",
-      render: (row) => <ChannelTag name={row.channel} />,
+      key: "publishedAt",
+      header: "公開日",
+      render: (row) => (
+        <Text color="rgba(230, 240, 255, 0.88)" fontSize="sm">
+          {formatDate(row.publishedAt)}
+        </Text>
+      ),
     },
   ],
   oneliner: [

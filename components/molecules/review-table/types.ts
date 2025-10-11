@@ -3,10 +3,17 @@ import type { ReactNode } from "react";
 export type Source = "youtube" | "oneliner";
 
 export type YoutubeReview = {
-  user: string;
+  videoId: string;
+  videoTitle: string;
+  channelTitle: string;
+  channelId: string;
+  channelUrl: string;
   comment: string;
-  title: string;
-  channel: string;
+  author: string;
+  publishedAt: string;
+  url: string;
+  likeCount?: number;
+  isOfficialLike: boolean;
 };
 
 export type OnelinerReview = {
