@@ -7,6 +7,15 @@ const MAX_COMMENTS_PER_VIDEO = 5;
 
 const OFFICIAL_KEYWORDS = ["公式", "official", "オフィシャル"];
 const REVIEW_KEYWORDS = ["レビュー", "感想", "評価", "解説", "考察", "紹介"];
+const IGNORE_COMMENT_PHRASES = [
+  "目次",
+  "再生リスト",
+  "playlist",
+  "こちら",
+  "リンクはこちら",
+  "続きはこちら",
+  "chapter",
+];
 
 // 既知の公式チャンネル ID を登録していけば精度が上がる（必要に応じて拡張）。
 const KNOWN_OFFICIAL_CHANNEL_IDS = new Set<string>([]);
@@ -116,14 +125,23 @@ async function fetchCommentsForVideo(videoId: string, maxResults: number, apiKey
 
   const json = (await response.json()) as CommentThreadsResponse;
   return (json.items ?? []).map((item) => {
-    const commentSnippet = item.snippet?.topLevelComment?.snippet;
+      const commentSnippet = item.snippet?.topLevelComment?.snippet;
     if (!commentSnippet?.textOriginal) {
+      return null;
+    }
+
+    const textOriginal = commentSnippet.textOriginal.trim();
+    if (
+      IGNORE_COMMENT_PHRASES.some((phrase) =>
+        textOriginal.toLowerCase().includes(phrase.toLowerCase())
+      )
+    ) {
       return null;
     }
 
     return {
       commentId: item.snippet?.topLevelComment?.id ?? undefined,
-      comment: commentSnippet.textOriginal,
+      comment: textOriginal,
       author: commentSnippet.authorDisplayName ?? "匿名ユーザー",
       likeCount: commentSnippet.likeCount ?? undefined,
       publishedAt: commentSnippet.publishedAt ?? "",
