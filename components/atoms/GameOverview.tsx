@@ -10,29 +10,14 @@ import {
   Badge,
   Skeleton,
   SkeletonText,
-  Button,
 } from "@chakra-ui/react";
 
-type GameReviewMocks = {
-  youtube?: Array<{ user: string; comment: string; title: string; channel: string }>;
-  oneliner?: Array<{
-    user: string;
-    comment: string;
-    rating: number;
-    postedAt?: string;
-    helpful?: number;
-    status?: string;
-  }>;
-};
+import type { GameDetailResponse, GameOverviewMock } from "@/types/game-detail";
 
-// ゲーム概要データの型定義（APIレスポンスと一致）
-type GameOverview = {
-  id: number;
+type OverviewData = {
   name: string;
-  summaryJa?: string | null; // 日本語の概要（優先表示）
-  summaryEn?: string | null; // 英語の概要（フォールバック）
-  genres?: string[]; // ジャンル一覧
-  reviews?: GameReviewMocks; // 口コミモック（他コンポーネントから利用）
+  summary: string;
+  genres: string[];
 };
 
 // ゲーム詳細ページでゲームの基本情報（タイトル、概要、ジャンル）を表示するコンポーネント
@@ -46,9 +31,8 @@ export default function GameOverview() {
   const gameId = typeof rawId === "string" ? rawId : null;
 
   // ゲームデータとローディング状態を管理
-  const [data, setData] = useState<GameOverview | null>(null);
+  const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isExpanded, setIsExpanded] = useState(false); // 説明文の展開状態
 
   // ゲームIDが変更された時にAPIからデータを取得
   useEffect(() => {
@@ -60,18 +44,62 @@ export default function GameOverview() {
     }
 
     setLoading(true);
-    // 擬似的に1秒遅延→API待ちの演出（任意）
-    const t = setTimeout(() => {
-      // モックAPIからゲームデータを取得
-      fetch(`/api/mocks/${gameId}`)
-        .then((r) => (r.ok ? r.json() : null)) // レスポンスが正常ならJSON、そうでなければnull
-        .then((json) => setData(json)) // 取得したデータをstateに設定
-        .catch(() => setData(null)) // エラー時はnullを設定
-        .finally(() => setLoading(false)); // ローディング状態を終了
-    }, 1000);
+    let cancelled = false;
 
-    // クリーンアップ関数（タイマーをクリア）
-    return () => clearTimeout(t);
+    const resolveSummary = (overview: GameOverviewMock): OverviewData => {
+      const summaryBase = overview.summaryJa ?? overview.summaryEn ?? "概要情報は未掲載です。";
+      return {
+        name: overview.name,
+        summary: summaryBase,
+        genres: overview.genres ?? [],
+      };
+    };
+
+    const fetchOverview = async () => {
+      try {
+        const igdbResponse = await fetch(`/api/igdb/${gameId}`, { cache: "no-store" });
+        if (igdbResponse.ok) {
+          const igdbData = (await igdbResponse.json()) as GameDetailResponse;
+          if (!cancelled) {
+            setData({
+              name: igdbData.name,
+              summary: igdbData.summary ?? "概要情報は未掲載です。",
+              genres: igdbData.genres,
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch IGDB overview", error);
+      }
+
+      try {
+        const mockResponse = await fetch(`/api/mocks/${gameId}`, { cache: "no-store" });
+        if (mockResponse.ok) {
+          const mock = (await mockResponse.json()) as GameOverviewMock;
+          if (!cancelled) {
+            setData(resolveSummary(mock));
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch mock overview", error);
+      }
+
+      if (!cancelled) {
+        setData(null);
+      }
+    };
+
+    void fetchOverview().finally(() => {
+      if (!cancelled) {
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [gameId]);
 
   // ローディング中はスケルトンUIを表示
@@ -97,16 +125,11 @@ export default function GameOverview() {
   }
 
   // 概要文を優先順位で選択（日本語 → 英語 → デフォルトメッセージ）
-  const summary = data.summaryJa ?? data.summaryEn ?? "概要情報は未掲載です。";
-
-  // 説明文を3行に制限する処理
-  const shouldTruncate = summary.length > 100; // 大体3行分の文字数
-  const displaySummary =
-    isExpanded || !shouldTruncate ? summary : summary.substring(0, 100) + "...";
+  const summary = data.summary;
 
   // ゲームデータを表示
   const genres = data.genres ?? [];
-const hasGenres = genres.length > 0;
+  const hasGenres = genres.length > 0;
 
 return (
   <Box p={4} borderWidth="1px" borderRadius="xl">
