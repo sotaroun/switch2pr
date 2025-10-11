@@ -4,6 +4,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Image, Spinner, Box, VStack, Text } from "@chakra-ui/react";
 
+import type { GameDetailResponse } from "@/types/game-detail";
+
 // ゲーム詳細ページのサムネ画像を表示するコンポーネント
 // chakraUIを使用する
 // IGDB APIを使用する
@@ -23,36 +25,45 @@ export const GameImage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // fetchCoverImage関数をメモ化（パフォーマンス向上とuseEffectの無限ループ防止のため）
-  const fetchCoverImage = useCallback(async () => {
+  const fetchGameDetail = useCallback(async (): Promise<GameDetailResponse | null> => {
+    if (!gameId) {
+      return null;
+    }
+
     try {
-      setIsLoading(true);
-      // ====== ここがモック部分 ======
-      // APIを呼ぶ代わりに setTimeout で1秒後に仮データをセット
-      const timer = setTimeout(() => {
-        const mockData = [
-          {
-            name: "abe Game",
-            cover: { url: "https://picsum.photos/300/200" }, // ランダム画像
-          },
-        ];
-
-        const url = mockData[0]?.cover?.url ?? null;
-        setCoverImageUrl(url); // 仮のURLをstateにセット
-        setIsLoading(false); // ローディング完了
-      }, 1000);
-      // ====== ここまで ======
-
-      return () => clearTimeout(timer); // クリーンアップ
+      const response = await fetch(`/api/igdb/${gameId}`, { cache: "no-store" });
+      if (response.ok) {
+        const json = (await response.json()) as GameDetailResponse;
+        return json;
+      }
     } catch (error) {
-      console.error("Error fetching cover image:", error);
+      console.error("Failed to fetch IGDB game detail", error);
+    }
+    return null;
+  }, [gameId]);
+
+  const fetchCoverImage = useCallback(async () => {
+    if (!gameId) {
+      setCoverImageUrl(null);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const detail = await fetchGameDetail();
+      setCoverImageUrl(detail?.coverUrl ?? null);
+    } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetchGameDetail, gameId]);
 
   // コンポーネントが表示された後の処理（gameIdが変更された時に画像を取得）
   useEffect(() => {
-　　if (!gameId) {return;}
-    fetchCoverImage();
+    if (!gameId) {
+      return;
+    }
+    void fetchCoverImage();
   }, [gameId, fetchCoverImage]);
 
   // 画面で表示させる部分
