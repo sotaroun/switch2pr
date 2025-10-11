@@ -1,0 +1,44 @@
+import type { ReactNode } from "react";
+
+export type Source = "youtube" | "oneliner";
+
+export type YoutubeReview = {
+  user: string;
+  comment: string;
+  title: string;
+  channel: string;
+};
+
+export type OnelinerReview = {
+  user: string;
+  comment: string;
+  rating: number;
+  postedAt?: string;
+  helpful?: number;
+  status?: string;
+};
+
+export type GameReviews = {
+  youtube: YoutubeReview[];
+  oneliner: OnelinerReview[];
+};
+
+export type ColumnDefinition<T> = {
+  key: keyof T;
+  header: ReactNode;
+  render?: (row: T, index: number) => ReactNode;
+};
+
+export type SourceRowMap = {
+  youtube: YoutubeReview;
+  oneliner: OnelinerReview;
+};
+
+export type ColumnsMap = {
+  [K in Source]: ColumnDefinition<SourceRowMap[K]>[];
+};
+
+export type SortTab = {
+  label: string;
+  isActive?: boolean;
+};
