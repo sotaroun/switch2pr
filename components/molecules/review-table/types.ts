@@ -7,6 +7,7 @@ export type YoutubeReview = {
   videoTitle: string;
   channelTitle: string;
   channelId: string;
+  channelUrl: string;
   comment: string;
   author: string;
   publishedAt: string;

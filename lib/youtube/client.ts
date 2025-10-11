@@ -16,6 +16,7 @@ export type YoutubeGameComment = {
   videoTitle: string;
   channelTitle: string;
   channelId: string;
+  channelUrl: string;
   comment: string;
   author: string;
   publishedAt: string;
@@ -206,17 +207,21 @@ export async function fetchYoutubeGameComments(query: string): Promise<YoutubeGa
       const isOfficialLike = candidate.officialScore > 0;
       for (const comment of comments) {
         if (results.length >= MAX_TOTAL_COMMENTS) break;
-        const commentUrl = comment.commentId
-          ? `https://www.youtube.com/watch?v=${candidate.videoId}&lc=${comment.commentId}`
-          : `https://www.youtube.com/watch?v=${candidate.videoId}`;
+      const commentUrl = comment.commentId
+        ? `https://www.youtube.com/watch?v=${candidate.videoId}&lc=${comment.commentId}`
+        : `https://www.youtube.com/watch?v=${candidate.videoId}`;
+      const channelUrl = candidate.channelId
+        ? `https://www.youtube.com/channel/${candidate.channelId}`
+        : `https://www.youtube.com/results?search_query=${encodeURIComponent(candidate.channelTitle)}`;
 
-        results.push({
-          videoId: candidate.videoId,
-          videoTitle: candidate.videoTitle,
-          channelTitle: candidate.channelTitle,
-          channelId: candidate.channelId,
-          comment: comment.comment,
-          author: comment.author,
+      results.push({
+        videoId: candidate.videoId,
+        videoTitle: candidate.videoTitle,
+        channelTitle: candidate.channelTitle,
+        channelId: candidate.channelId,
+        channelUrl,
+        comment: comment.comment,
+        author: comment.author,
           publishedAt: comment.publishedAt,
           likeCount: comment.likeCount,
           url: commentUrl,

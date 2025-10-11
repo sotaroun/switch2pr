@@ -4,11 +4,15 @@ import { FaYoutube } from "react-icons/fa";
 
 export type ChannelTagProps = HStackProps & {
   name: string;
+  href?: string;
 };
 
-export const ChannelTag = ({ name, ...props }: ChannelTagProps) => (
+export const ChannelTag = ({ name, href, ...props }: ChannelTagProps) => (
   <HStack
-    as="span"
+    as={href ? "a" : "span"}
+    href={href}
+    target={href ? "_blank" : undefined}
+    rel={href ? "noopener noreferrer" : undefined}
     spacing={2}
     px={3}
     py={1}

@@ -28,7 +28,7 @@ export const baseColumnsMap: ColumnsMap = {
     {
       key: "channelTitle",
       header: "チャンネル",
-      render: (row) => <ChannelTag name={row.channelTitle} />,
+      render: (row) => <ChannelTag name={row.channelTitle} href={row.channelUrl} />,
     },
     {
       key: "comment",
