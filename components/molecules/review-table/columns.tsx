@@ -1,4 +1,4 @@
-import { Box, Text, Tooltip } from "@chakra-ui/react";
+import { Box, Text } from "@chakra-ui/react";
 import { StarRatingDisplay } from "../../atoms/StarRatingDisplay";
 import { StatusBadge } from "../../atoms/StatusBadge";
 import type { ColumnsMap } from "./types";
@@ -10,25 +10,24 @@ const renderTruncatedLink = (
   color: string,
   maxWidth: string = "240px"
 ) => (
-  <Tooltip label={text} hasArrow placement="top" isDisabled={text.length <= 16}>
-    <Text
-      as="a"
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      color={color}
-      fontSize="sm"
-      fontWeight="semibold"
-      textDecoration="underline"
-      maxW={maxWidth}
-      whiteSpace="nowrap"
-      overflow="hidden"
-      textOverflow="ellipsis"
-      display="inline-block"
-    >
-      {text}
-    </Text>
-  </Tooltip>
+  <Text
+    as="a"
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    color={color}
+    fontSize="sm"
+    fontWeight="semibold"
+    textDecoration="underline"
+    maxW={maxWidth}
+    whiteSpace="nowrap"
+    overflow="hidden"
+    textOverflow="ellipsis"
+    display="inline-block"
+    title={text}
+  >
+    {text}
+  </Text>
 );
 
 export const baseColumnsMap: ColumnsMap = {
@@ -58,11 +57,15 @@ export const baseColumnsMap: ColumnsMap = {
       key: "comment",
       header: "コメント",
       render: (row) => (
-        <Tooltip label={row.comment} hasArrow placement="top" isDisabled={row.comment.length <= 60}>
-          <Text color="rgba(240, 244, 255, 0.95)" fontSize="sm" lineHeight={1.6} noOfLines={2}>
-            {row.comment}
-          </Text>
-        </Tooltip>
+        <Text
+          color="rgba(240, 244, 255, 0.95)"
+          fontSize="sm"
+          lineHeight={1.6}
+          noOfLines={2}
+          title={row.comment}
+        >
+          {row.comment}
+        </Text>
       ),
     },
     {
