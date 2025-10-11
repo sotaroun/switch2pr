@@ -13,6 +13,18 @@ import {
   Button,
 } from "@chakra-ui/react";
 
+type GameReviewMocks = {
+  youtube?: Array<{ user: string; comment: string; title: string; channel: string }>;
+  oneliner?: Array<{
+    user: string;
+    comment: string;
+    rating: number;
+    postedAt?: string;
+    helpful?: number;
+    status?: string;
+  }>;
+};
+
 // ゲーム概要データの型定義（APIレスポンスと一致）
 type GameOverview = {
   id: number;
@@ -20,6 +32,7 @@ type GameOverview = {
   summaryJa?: string | null; // 日本語の概要（優先表示）
   summaryEn?: string | null; // 英語の概要（フォールバック）
   genres?: string[]; // ジャンル一覧
+  reviews?: GameReviewMocks; // 口コミモック（他コンポーネントから利用）
 };
 
 // ゲーム詳細ページでゲームの基本情報（タイトル、概要、ジャンル）を表示するコンポーネント
@@ -126,3 +139,4 @@ return (
     )}
   </Box>
 );
+}
