@@ -20,10 +20,9 @@ const renderTruncatedLink = (
     fontWeight="semibold"
     textDecoration="underline"
     maxW={maxWidth}
-    whiteSpace="nowrap"
     overflow="hidden"
-    textOverflow="ellipsis"
-    display="inline-block"
+    display="-webkit-box"
+    style={{ WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
     title={text}
   >
     {text}
@@ -61,7 +60,10 @@ export const baseColumnsMap: ColumnsMap = {
           color="rgba(240, 244, 255, 0.95)"
           fontSize="sm"
           lineHeight={1.6}
-          noOfLines={2}
+          maxW="560px"
+          overflow="hidden"
+          display="-webkit-box"
+          style={{ WebkitLineClamp: 4, WebkitBoxOrient: "vertical" }}
           title={row.comment}
         >
           {row.comment}
