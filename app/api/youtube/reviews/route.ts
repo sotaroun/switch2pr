@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
 
-import {
-  buildYoutubeWatchUrl,
-  fetchYoutubeReviews,
-} from "@/lib/youtube/client";
+import { fetchYoutubeGameComments } from "@/lib/youtube/client";
 
 export type YoutubeReviewResponse = {
   videoId: string;
-  title: string;
-  description: string;
+  videoTitle: string;
   channelTitle: string;
   channelId: string;
+  comment: string;
+  author: string;
   publishedAt: string;
-  thumbnailUrl?: string;
-  viewCount?: number;
   likeCount?: number;
   url: string;
+  isOfficialLike: boolean;
 };
 
 export async function GET(req: Request) {
@@ -27,13 +24,8 @@ export async function GET(req: Request) {
   }
 
   try {
-    const reviews = await fetchYoutubeReviews(query);
-    const payload: YoutubeReviewResponse[] = reviews.map((review) => ({
-      ...review,
-      url: buildYoutubeWatchUrl(review.videoId),
-    }));
-
-    return NextResponse.json({ items: payload }, {
+    const reviews = await fetchYoutubeGameComments(query);
+    return NextResponse.json({ items: reviews }, {
       headers: {
         "Cache-Control": "public, max-age=300",
       },

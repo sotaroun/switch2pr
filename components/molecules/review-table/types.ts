@@ -4,15 +4,15 @@ export type Source = "youtube" | "oneliner";
 
 export type YoutubeReview = {
   videoId: string;
-  title: string;
-  description: string;
+  videoTitle: string;
   channelTitle: string;
   channelId: string;
+  comment: string;
+  author: string;
   publishedAt: string;
-  thumbnailUrl?: string;
   url: string;
-  viewCount?: number;
   likeCount?: number;
+  isOfficialLike: boolean;
 };
 
 export type OnelinerReview = {

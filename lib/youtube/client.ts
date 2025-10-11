@@ -1,19 +1,27 @@
 const SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
-const VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos";
+const COMMENT_THREADS_URL = "https://www.googleapis.com/youtube/v3/commentThreads";
 
-const MAX_RESULTS = 8;
-const DEFAULT_SUFFIX = " review";
+const MAX_VIDEO_CANDIDATES = 8;
+const MAX_TOTAL_COMMENTS = 15;
+const MAX_COMMENTS_PER_VIDEO = 5;
 
-export type YoutubeReviewItem = {
+const OFFICIAL_KEYWORDS = ["公式", "official", "オフィシャル"];
+const REVIEW_KEYWORDS = ["レビュー", "感想", "評価", "解説", "考察", "紹介"];
+
+// 既知の公式チャンネル ID を登録していけば精度が上がる（必要に応じて拡張）。
+const KNOWN_OFFICIAL_CHANNEL_IDS = new Set<string>([]);
+
+export type YoutubeGameComment = {
   videoId: string;
-  title: string;
-  description: string;
+  videoTitle: string;
   channelTitle: string;
   channelId: string;
+  comment: string;
+  author: string;
   publishedAt: string;
-  thumbnailUrl: string;
-  viewCount?: number;
   likeCount?: number;
+  url: string;
+  isOfficialLike: boolean;
 };
 
 type YoutubeSearchResponse = {
@@ -22,69 +30,122 @@ type YoutubeSearchResponse = {
     snippet?: {
       title?: string | null;
       description?: string | null;
-      publishedAt?: string | null;
       channelTitle?: string | null;
       channelId?: string | null;
-      thumbnails?: {
-        high?: { url?: string | null } | null;
-        medium?: { url?: string | null } | null;
-        default?: { url?: string | null } | null;
-      } | null;
+      publishedAt?: string | null;
     } | null;
   }>;
 };
 
-type YoutubeVideosResponse = {
+type CommentThreadsResponse = {
   items?: Array<{
     id?: string | null;
     snippet?: {
-      title?: string | null;
-      description?: string | null;
-      publishedAt?: string | null;
-      channelTitle?: string | null;
-      channelId?: string | null;
-      thumbnails?: {
-        high?: { url?: string | null } | null;
-        medium?: { url?: string | null } | null;
-        default?: { url?: string | null } | null;
+      videoId?: string | null;
+      topLevelComment?: {
+        id?: string | null;
+        snippet?: {
+          textOriginal?: string | null;
+          authorDisplayName?: string | null;
+          likeCount?: number | null;
+          publishedAt?: string | null;
+        } | null;
       } | null;
-    } | null;
-    statistics?: {
-      viewCount?: string | null;
-      likeCount?: string | null;
+      canReply?: boolean | null;
+      totalReplyCount?: number | null;
+      isPublic?: boolean | null;
     } | null;
   }>;
 };
 
 function ensureApiKey(): string {
-  const key = process.env.YOUTUBE_API_KEY;
-  if (!key) {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) {
     throw new Error("YOUTUBE_API_KEY is not set. Please define it in your environment variables.");
   }
-  return key;
+  return apiKey;
 }
 
-function pickThumbnail(thumbnails?: {
-  high?: { url?: string | null } | null;
-  medium?: { url?: string | null } | null;
-  default?: { url?: string | null } | null;
-} | null): string | undefined {
-  return (
-    thumbnails?.high?.url ??
-    thumbnails?.medium?.url ??
-    thumbnails?.default?.url ??
-    undefined
-  )?.toString();
+function includesKeyword(value: string | undefined | null, keywords: string[]): boolean {
+  if (!value) return false;
+  const lower = value.toLowerCase();
+  return keywords.some((keyword) => lower.includes(keyword.toLowerCase()));
 }
 
-export async function fetchYoutubeReviews(query: string): Promise<YoutubeReviewItem[]> {
+function calcOfficialScore(channelTitle?: string | null, videoTitle?: string | null, channelId?: string | null): number {
+  let score = 0;
+  if (channelId && KNOWN_OFFICIAL_CHANNEL_IDS.has(channelId)) {
+    score += 10;
+  }
+  if (includesKeyword(channelTitle, OFFICIAL_KEYWORDS)) {
+    score += 5;
+  }
+  if (includesKeyword(videoTitle, OFFICIAL_KEYWORDS)) {
+    score += 3;
+  }
+  return score;
+}
+
+function calcReviewScore(channelTitle?: string | null, videoTitle?: string | null, description?: string | null): number {
+  let score = 0;
+  if (includesKeyword(videoTitle, REVIEW_KEYWORDS)) score += 3;
+  if (includesKeyword(description, REVIEW_KEYWORDS)) score += 2;
+  if (includesKeyword(channelTitle, REVIEW_KEYWORDS)) score += 1;
+  return score;
+}
+
+async function fetchCommentsForVideo(videoId: string, maxResults: number, apiKey: string) {
+  const params = new URLSearchParams({
+    key: apiKey,
+    part: "snippet",
+    videoId,
+    maxResults: String(maxResults),
+    textFormat: "plainText",
+    order: "relevance",
+  });
+
+  const response = await fetch(`${COMMENT_THREADS_URL}?${params.toString()}`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`YouTube comments fetch failed: ${response.status} ${text}`);
+  }
+
+  const json = (await response.json()) as CommentThreadsResponse;
+  return (json.items ?? []).map((item) => {
+    const commentSnippet = item.snippet?.topLevelComment?.snippet;
+    if (!commentSnippet?.textOriginal) {
+      return null;
+    }
+
+    return {
+      commentId: item.snippet?.topLevelComment?.id ?? undefined,
+      comment: commentSnippet.textOriginal,
+      author: commentSnippet.authorDisplayName ?? "匿名ユーザー",
+      likeCount: commentSnippet.likeCount ?? undefined,
+      publishedAt: commentSnippet.publishedAt ?? "",
+    };
+  }).filter((item): item is {
+    commentId?: string;
+    comment: string;
+    author: string;
+    likeCount?: number;
+    publishedAt: string;
+  } => Boolean(item));
+}
+
+export async function fetchYoutubeGameComments(query: string): Promise<YoutubeGameComment[]> {
   const apiKey = ensureApiKey();
   const searchParams = new URLSearchParams({
     key: apiKey,
     part: "snippet",
-    q: `${query}${DEFAULT_SUFFIX}`.trim(),
-    maxResults: String(MAX_RESULTS),
+    q: `${query} レビュー`,
+    regionCode: "JP",
+    relevanceLanguage: "ja",
     type: "video",
+    maxResults: String(MAX_VIDEO_CANDIDATES),
     safeSearch: "moderate",
   });
 
@@ -98,56 +159,75 @@ export async function fetchYoutubeReviews(query: string): Promise<YoutubeReviewI
   }
 
   const searchJson = (await searchResponse.json()) as YoutubeSearchResponse;
-  const videoIds = (searchJson.items ?? [])
-    .map((item) => item.id?.videoId)
-    .filter((id): id is string => Boolean(id));
-
-  if (videoIds.length === 0) {
-    return [];
-  }
-
-  const videosParams = new URLSearchParams({
-    key: apiKey,
-    part: "snippet,statistics",
-    id: videoIds.join(","),
-  });
-
-  const videosResponse = await fetch(`${VIDEOS_URL}?${videosParams.toString()}`, {
-    cache: "no-store",
-  });
-
-  if (!videosResponse.ok) {
-    const text = await videosResponse.text();
-    throw new Error(`YouTube videos fetch failed: ${videosResponse.status} ${text}`);
-  }
-
-  const videosJson = (await videosResponse.json()) as YoutubeVideosResponse;
-
-  return (videosJson.items ?? [])
+  const candidates = (searchJson.items ?? [])
     .map((item) => {
-      const id = item.id ?? undefined;
-      if (!id) {
+      const videoId = item.id?.videoId ?? undefined;
+      if (!videoId) {
         return null;
       }
 
       const snippet = item.snippet ?? undefined;
-      const statistics = item.statistics ?? undefined;
+      const officialScore = calcOfficialScore(snippet?.channelTitle, snippet?.title, snippet?.channelId);
+      const reviewScore = calcReviewScore(snippet?.channelTitle, snippet?.title, snippet?.description);
 
       return {
-        videoId: id,
-        title: snippet?.title ?? "",
-        description: snippet?.description ?? "",
+        videoId,
+        videoTitle: snippet?.title ?? "",
         channelTitle: snippet?.channelTitle ?? "",
         channelId: snippet?.channelId ?? "",
         publishedAt: snippet?.publishedAt ?? "",
-        thumbnailUrl: pickThumbnail(snippet?.thumbnails),
-        viewCount: statistics?.viewCount ? Number(statistics.viewCount) : undefined,
-        likeCount: statistics?.likeCount ? Number(statistics.likeCount) : undefined,
-      } satisfies YoutubeReviewItem;
+        officialScore,
+        reviewScore,
+        totalScore: officialScore * 10 + reviewScore,
+      };
     })
-    .filter((item): item is YoutubeReviewItem => Boolean(item));
-}
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .sort((a, b) => b.totalScore - a.totalScore);
 
-export function buildYoutubeWatchUrl(videoId: string): string {
-  return `https://www.youtube.com/watch?v=${videoId}`;
+  const results: YoutubeGameComment[] = [];
+
+  for (const candidate of candidates) {
+    if (results.length >= MAX_TOTAL_COMMENTS) {
+      break;
+    }
+
+    try {
+      const remaining = MAX_TOTAL_COMMENTS - results.length;
+      const comments = await fetchCommentsForVideo(
+        candidate.videoId,
+        Math.min(MAX_COMMENTS_PER_VIDEO, remaining),
+        apiKey
+      );
+
+      if (comments.length === 0) {
+        continue;
+      }
+
+      const isOfficialLike = candidate.officialScore > 0;
+      for (const comment of comments) {
+        if (results.length >= MAX_TOTAL_COMMENTS) break;
+        const commentUrl = comment.commentId
+          ? `https://www.youtube.com/watch?v=${candidate.videoId}&lc=${comment.commentId}`
+          : `https://www.youtube.com/watch?v=${candidate.videoId}`;
+
+        results.push({
+          videoId: candidate.videoId,
+          videoTitle: candidate.videoTitle,
+          channelTitle: candidate.channelTitle,
+          channelId: candidate.channelId,
+          comment: comment.comment,
+          author: comment.author,
+          publishedAt: comment.publishedAt,
+          likeCount: comment.likeCount,
+          url: commentUrl,
+          isOfficialLike,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch comments for video", candidate.videoId, error);
+      continue;
+    }
+  }
+
+  return results;
 }

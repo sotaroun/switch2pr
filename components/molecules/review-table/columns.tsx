@@ -8,7 +8,7 @@ import { formatDate } from "./utils";
 export const baseColumnsMap: ColumnsMap = {
   youtube: [
     {
-      key: "title",
+      key: "videoTitle",
       header: "動画タイトル",
       render: (row) => (
         <Text
@@ -16,12 +16,12 @@ export const baseColumnsMap: ColumnsMap = {
           href={row.url}
           target="_blank"
           rel="noopener noreferrer"
-          color="rgba(255, 240, 246, 0.94)"
+          color={row.isOfficialLike ? "rgba(255, 240, 246, 0.94)" : "rgba(240, 244, 255, 0.9)"}
           fontSize="sm"
           fontWeight="semibold"
           textDecoration="underline"
         >
-          {row.title}
+          {row.videoTitle}
         </Text>
       ),
     },
@@ -31,11 +31,20 @@ export const baseColumnsMap: ColumnsMap = {
       render: (row) => <ChannelTag name={row.channelTitle} />,
     },
     {
-      key: "description",
-      header: "概要",
+      key: "comment",
+      header: "コメント",
       render: (row) => (
         <Text color="rgba(240, 244, 255, 0.95)" fontSize="sm" lineHeight={1.6}>
-          {row.description || "説明は用意されていません。"}
+          {row.comment}
+        </Text>
+      ),
+    },
+    {
+      key: "author",
+      header: "投稿者",
+      render: (row) => (
+        <Text color="rgba(235, 244, 255, 0.88)" fontSize="sm">
+          {row.author}
         </Text>
       ),
     },

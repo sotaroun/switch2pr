@@ -1,79 +1,86 @@
-# YouTube API 連携プラン（ゲーム詳細ページのレビュー）
+# YouTube API 連携プラン（ゲームレビュー用コメント取得）
 
-GameDetailPage のレビューセクションで YouTube 動画を実データ化するための手順です。IGDB 連携と同じように段階を踏んで構築します。
+ゲーム詳細ページの YouTube タブで、ゲームに対するコメントを実データ化するための計画です。公式動画を優先しつつ、コメント欄が閉じられているケースにも対応する構成を想定しています。
 
 ---
 
 ## 1. 前提準備
-- [ ] Google Cloud Console でプロジェクトを作成（または既存プロジェクトを使用）。
-- [ ] YouTube Data API v3 を有効化。
-- [ ] API キーを作成し、`.env.local` に追加。
+- Google Cloud Console でプロジェクトを作成（または既存プロジェクトを使用）。
+- YouTube Data API v3 を有効化。
+- API キーを発行し、`.env.local` に設定。
   ```bash
   YOUTUBE_API_KEY=your_api_key
   ```
+- 開発サーバーを再起動して環境変数を読み込ませる。
 
-## 2. API 設計
-- 必要な情報: 動画 ID、タイトル、説明、サムネイル、チャンネル名、公開日、再生回数など。
-- 取得手順の基本パターン：
-  1. `search` メソッドでゲームタイトルキーワードに一致する動画 ID を取得。
-  2. `videos` メソッドで詳細情報（statistics, snippet）をまとめて取得。
-- リクエスト例：
-  ```http
-  GET https://www.googleapis.com/youtube/v3/search
-    ?part=snippet
-    &q=<ゲーム名+レビュー等のキーワード>
-    &type=video
-    &maxResults=10
-    &key=API_KEY
-  ```
-  取得した videoId を使って：
-  ```http
-  GET https://www.googleapis.com/youtube/v3/videos
-    ?part=snippet,statistics,contentDetails
-    &id=<comma-separated videoIds>
-    &key=API_KEY
-  ```
+---
 
-## 3. サーバー API の実装
-- `app/api/youtube/reviews/route.ts` を作成。
-  - クエリパラメータ: `?query=<検索語>` または `?gameId=<IGDBのID>` を受け取る設計を検討。
-  - `YOUTUBE_API_KEY` を使って上記 2 ステップのリクエストを行い、必要なフィールドだけを整形して返す。
-  - レスポンス例：
-    ```ts
-    type YoutubeReview = {
-      videoId: string;
-      title: string;
-      description: string;
-      channelTitle: string;
-      publishedAt: string;
-      thumbnailUrl: string;
-      viewCount?: number;
-      likeCount?: number;
-    };
-    ```
-- API キー漏洩を避けるため、クライアントからはサーバー API だけを呼ぶようにする。
+## 2. 取得方針
+1. **動画候補の検索**
+   - `search.list` (`part=snippet`) でゲーム名 + 公式系キーワード（例: `公式`, `official`）を含む日本語の動画を検索。
+   - パラメータ例: `q=<ゲーム名> 公式`, `regionCode=JP`, `relevanceLanguage=ja`, `type=video`, `maxResults=10`。
+   - 結果を「公式らしさ」でスコアリング（チャンネル名 / タイトルに `公式`, `official` が含まれるか、既知の公式チャンネル ID に一致するか等）。
+2. **準公式動画の考慮**
+   - 公式候補のコメントが取得できなかった場合、同じ検索結果から日本語のレビュー動画（公式でなくとも信頼できそうなチャンネル）を追加候補とする。
+   - フィルタ条件例: チャンネル名・タイトルに `レビュー`, `感想`, `解説`, `日本語` などが含まれるもの。
+3. **コメント取得**
+   - 優先度の高い動画から順に `commentThreads.list` (`part=snippet`, `textFormat=plainText`, `order=relevance`) を呼び、トップレベルコメントを収集。
+   - 動画あたりの取得数と全体の最大数を決め、Quota を超えないよう注意。
 
-## 4. ReviewSwitcherTable 側の改修
-- 既存の `ReviewSwitcherTable` はモックデータを表示しているため、YouTube ソースのデータを API から受け取れるように修正。
-  - 現状の columns 定義は再利用できるため、`useEffect` で `/api/youtube/reviews?query=<ゲーム名>` を呼んで `reviews.youtube` を入れ替える形を検討。
-  - query のゲーム名は IGDB の `name` から借りるか、GameOverview に渡す際に保持しておく。
+---
 
-## 5. レート制限・キャッシュ
-- 無料枠では 1 日あたりのクォータがあるため、API 呼び出し回数に注意。
-  - キャッシュ案: サーバー側で `query` をキーに一定時間（例: 1 時間）メモリ／KV に保存。
-  - `maxResults` を絞る（初期表示は 5～10 件程度）。
+## 3. サーバー API 設計
+- `app/api/youtube/reviews/route.ts`
+  - クエリ: `?query=<ゲーム名>`
+  - 処理フロー:
+    1. 検索 API で候補動画を取得し、公式度・準公式度で並び替え。
+    2. 上位からコメントを収集 (`commentThreads.list`) し、十分な数が集まったら終了。
+    3. コメントは以下の形式に整形：
+       ```ts
+       type YoutubeGameComment = {
+         videoId: string;
+         videoTitle: string;
+         channelTitle: string;
+         channelId: string;
+         comment: string;
+         author: string;
+         publishedAt: string;
+         likeCount?: number;
+         url: string; // コメントまたは動画へのリンク
+         isOfficialLike: boolean;
+       };
+       ```
+    4. エラー時は HTTP 500 + `error` フィールドで理由を返す。
 
-## 6. エラー・フォールバック対応
-- YouTube API のレスポンスエラー時はモックデータまたは空表示を返す。
-- `YOUTUBE_API_KEY` が未設定の場合、API 経由で警告を返却（`status: 500` や `error: "missing_api_key"` など）。
+---
 
-## 7. テスト・確認
-- `.env.local` にキーを設定した状態で `npm run dev` を起動。
-- `http://localhost:3000/api/youtube/reviews?query=<ゲーム名>` で JSON が返るか確認。
-- ReviewSwitcherTable で YouTube タブを開き、動画が整形されて表示されるか UI レベルで確認。
+## 4. フロントエンド統合
+- `ReviewSwitcherTable` の YouTube タブは、コメント単位のリストを表示するように変更。
+  - 列案: コメント本文 / 投稿者 / 動画タイトル (リンク) / チャンネル名 / 公開日 / いいね数。
+  - コメント本文が長い場合は適度に省略し、ホバーで全体表示するなどの UI を検討。
+- API 取得時、IGDB から得たゲーム名を検索語として渡す。
+- API キー未設定 or 取得失敗時は、明示的にメッセージを表示しモックにフォールバック。
+
+---
+
+## 5. Quota・キャッシュ戦略
+- `commentThreads.list` のクォータ消費は `cost=1` だが動画数が多いと総コストが上がるため、
+  - 公式候補 3 本 + 準公式 2 本など、探索数を制限。
+  - API 結果をサーバー側で短時間キャッシュ（例: 1 時間）して、同じゲーム名への再問い合わせを抑える。
+- 大量のコメントを取得する必要はないため、1 動画あたり 3～5 件、全体で 15 件程度を目安とする。
+
+---
+
+## 6. テスト・確認
+- `.env.local` に API キーを設定 → `npm run dev`。
+- `http://localhost:3000/api/youtube/reviews?query=<ゲーム名>` を叩き、コメント付きの JSON が返ることを確認。
+- 詳細ページで YouTube タブを開き、コメントが表示されること、公式系の動画が優先されていることを確認。
 - `npm run lint` を実行。
 
-## 8. 今後の拡張
-- ゲーム ID と YouTube の関連をより厳密にしたい場合、IGDB の別名やジャンルを組み合わせて検索クエリを組む。
-- 参考数・コメント数など他ソース（ex: YouTube コメント）との同期を検討。
-- YouTube API の quota が不足する場合は、APIs を分散 / キャッシュ層（ISR, Redis など）を導入。
+---
+
+## 7. 今後の改善アイデア
+- 公式チャンネル ID のホワイトリストを持ち、判定精度を高める。
+- コメントの内容分類（ポジティブ / ネガティブなど）の導入。
+- 翻訳 API（DeepL など）と組み合わせ、日本語以外のコメントにも対応。
+- キャッシュ層（Redis / レスポンス保存）を導入してクォータ消費をさらに抑える。
