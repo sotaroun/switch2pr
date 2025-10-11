@@ -1,0 +1,112 @@
+{
+  "1": {
+    "id": 1,
+    "name": "モック：エピック・アドベンチャー",
+    "summaryJa": "古代遺跡が点在する群島を舞台に、若き探検家が失われた文明の謎を追うアクションアドベンチャー。軽快なパルクールと多彩な道具で地形を攻略し、仕掛けや敵を乗り越えて手がかりを集める。昼夜や天候の変化が探索に影響し、選択次第で物語が分岐する。短時間でも達成感が得られる設計。主要なボス戦は複数の攻略法が用意され、隠密か正面突破かを選べる。収集要素で拠点を拡張し、道具やスキルなども解放。写真・周回等にも対応。",
+    "summaryEn": "An epic action-adventure set in ancient ruins…",
+    "genres": ["アクション", "アドベンチャー", "パズル"],
+    "reviews": {
+      "youtube": [
+        {
+          "user": "GameReviewer123",
+          "comment": "このゲームの物理エンジンは本当に革命的！岩を転がして敵を倒すだけで1時間溶ける。",
+          "title": "ゼルダBOTW 物理エンジンの凄さを検証！",
+          "channel": "ゲーム解析チャンネル"
+        },
+        {
+          "user": "ZeldaMaster",
+          "comment": "100%クリアまでに300時間かかったけど、全然飽きなかった。",
+          "title": "ゼルダBOTW 100%攻略への道のり",
+          "channel": "完全攻略ガイド"
+        },
+        {
+          "user": "AdventureSeeker",
+          "comment": "祠の謎解きが本当に面白い。毎回違ったアプローチで解ける！",
+          "title": "最も難しい祠TOP10ランキング",
+          "channel": "謎解きマスター"
+        },
+        {
+          "user": "MusicGameLover",
+          "comment": "BGMの演出が素晴らしい。戦闘時の音楽の盛り上がりと、平和な探索時の対比が最高。",
+          "title": "ゼルダBOTW 音楽とサウンドデザインの魅力",
+          "channel": "ゲーム音楽研究所"
+        },
+        {
+          "user": "CombatAnalyst",
+          "comment": "戦闘システムが他のゼルダとは全く違って新鮮。武器の耐久度管理が戦略的。",
+          "title": "BOTW戦闘システム完全解説",
+          "channel": "戦闘解析チャンネル"
+        }
+      ],
+      "oneliner": [
+        {
+          "user": "ゲーマー花子",
+          "comment": "グラフィックが美しくて、探索がとにかく楽しい！毎日数時間遊んでます。",
+          "rating": 5,
+          "postedAt": "2024-01-17",
+          "helpful": 12,
+          "status": "承認済"
+        },
+        {
+          "user": "冒険者太郎",
+          "comment": "武器の耐久度システムは最初戸惑ったけど、慣れると戦略性が高くて良い。",
+          "rating": 4,
+          "postedAt": "2024-01-16",
+          "helpful": 8,
+          "status": "承認済"
+        },
+        {
+          "user": "パズル好き",
+          "comment": "祠の謎解きが本当によくできてる。120個全部クリアしました！",
+          "rating": 5,
+          "postedAt": "2024-01-15",
+          "helpful": 15,
+          "status": "承認済"
+        },
+        {
+          "user": "初心者ゲーマー",
+          "comment": "ゲーム初心者には少し難しかったですが、慣れると楽しくなりました。",
+          "rating": 3,
+          "postedAt": "2024-01-14",
+          "helpful": 5,
+          "status": "承認済"
+        },
+        {
+          "user": "音楽愛好者",
+          "comment": "BGMとサウンドデザインが素晴らしい！特に環境音が臨場感たっぷり。",
+          "rating": 5,
+          "postedAt": "2024-01-13",
+          "helpful": 9,
+          "status": "承認済"
+        }
+      ]
+    }
+  },
+  "2": {
+    "id": 2,
+    "name": "モック：ダンジョン・ランナー",
+    "summaryJa": null,
+    "summaryEn": "Fast-paced dungeon runner with roguelike elements.",
+    "genres": ["ローグライト", "ラン"],
+    "reviews": {
+      "youtube": [
+        {
+          "user": "SpeedRunLab",
+          "comment": "チェインダッシュが気持ち良すぎる。テンポが癖になる。",
+          "title": "30分で学ぶコア攻略",
+          "channel": "SR Lab"
+        }
+      ],
+      "oneliner": [
+        {
+          "user": "loop",
+          "comment": "テンション上がるBGMで周回が止まらない。通勤時間が一瞬で終わる。",
+          "rating": 4,
+          "postedAt": "2024-02-01",
+          "helpful": 6,
+          "status": "承認済"
+        }
+      ]
+    }
+  }
+}
