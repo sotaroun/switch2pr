@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import CategoryTemplate from '../../components/templates/CategoryPage/CategoryTemplate';
-import { Game } from '../../types/game';
+import { Game, GameCategory, ALL_GAME_CATEGORIES } from '../../types/game';
 
 /**
  * カテゴリページのメインコンポーネント
@@ -14,12 +14,10 @@ const CategoryPage: React.FC = () => {
   const router = useRouter();
   
   // 選択中のカテゴリ状態（初期値: 全カテゴリ選択）
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([
-    'アクション', 'RPG', 'シューティング', 'スポーツ', 'パズル'
+  // GameCategory型で厳密に管理
+  const [selectedCategories, setSelectedCategories] = useState<GameCategory[]>([
+    ...ALL_GAME_CATEGORIES
   ]);
-
-  // 利用可能なカテゴリ一覧
-  const allCategories = ['アクション', 'RPG', 'シューティング', 'スポーツ', 'パズル'];
   
   // TODO: 将来的にはAPIから取得
   // ダミーゲームデータ
@@ -52,8 +50,9 @@ const CategoryPage: React.FC = () => {
   /**
    * カテゴリ選択切り替えハンドラー
    * 選択済みなら解除、未選択なら追加
+   * GameCategory型で型安全に管理
    */
-  const handleCategoryToggle = useCallback((category: string) => {
+  const handleCategoryToggle = useCallback((category: GameCategory) => {
     setSelectedCategories(prev => {
       if (prev.includes(category)) {
         // 解除
@@ -91,7 +90,7 @@ const CategoryPage: React.FC = () => {
   return (
     <CategoryTemplate
       games={allGames}
-      categories={allCategories}
+      categories={ALL_GAME_CATEGORIES}
       selectedCategories={selectedCategories}
       filteredGames={filteredGames}
       onCategoryToggle={handleCategoryToggle}

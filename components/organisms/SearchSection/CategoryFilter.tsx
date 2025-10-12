@@ -1,13 +1,14 @@
 import React, { memo } from 'react';
 import CategoryFilter from '../../molecules/Navigation/CategoryFilter';
+import { GameCategory } from '../../../types/game';
 
 interface CategoryFilterOrgProps {
-  /** 利用可能なカテゴリ一覧 */
-  categories: string[];
-  /** 現在選択中のカテゴリ */
-  selectedCategories: string[];
+  /** 利用可能なカテゴリ一覧（厳密な型） */
+  categories: readonly GameCategory[];
+  /** 現在選択中のカテゴリ（厳密な型） */
+  selectedCategories: GameCategory[];
   /** カテゴリ選択切り替え時のハンドラー */
-  onCategoryToggle: (category: string) => void;
+  onCategoryToggle: (category: GameCategory) => void;
   /** 全解除時のハンドラー */
   onReset: () => void;
 }
@@ -20,7 +21,7 @@ interface CategoryFilterOrgProps {
  * @example
  * ```tsx
  * <CategoryFilterOrg
- *   categories={allCategories}
+ *   categories={ALL_GAME_CATEGORIES}
  *   selectedCategories={selected}
  *   onCategoryToggle={handleToggle}
  *   onReset={handleReset}

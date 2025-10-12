@@ -12,14 +12,15 @@ import {
 import { MdClear } from "react-icons/md";
 import CategoryButton from '../../../atoms/Button/CategoryButton';
 import ActionButton from '../../../atoms/Button/ActionButton';
+import { GameCategory } from '../../../types/game';
 
 interface CategoryFilterProps {
-  /** 利用可能なカテゴリ一覧 */
-  categories: string[];
-  /** 現在選択中のカテゴリ */
-  selectedCategories: string[];
+  /** 利用可能なカテゴリ一覧（厳密な型） */
+  categories: readonly GameCategory[];
+  /** 現在選択中のカテゴリ（厳密な型） */
+  selectedCategories: GameCategory[];
   /** カテゴリ選択切り替え時のハンドラー */
-  onCategoryToggle: (category: string) => void;
+  onCategoryToggle: (category: GameCategory) => void;
   /** 全解除時のハンドラー */
   onReset: () => void;
 }
@@ -34,7 +35,7 @@ interface CategoryFilterProps {
  * @example
  * ```tsx
  * <CategoryFilter
- *   categories={['アクション', 'RPG', 'パズル']}
+ *   categories={ALL_GAME_CATEGORIES}
  *   selectedCategories={['アクション']}
  *   onCategoryToggle={(category) => handleToggle(category)}
  *   onReset={handleReset}
@@ -47,13 +48,13 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onCategoryToggle,
   onReset
 }) => {
-  const [animatingButtons, setAnimatingButtons] = useState<Set<string>>(new Set());
+  const [animatingButtons, setAnimatingButtons] = useState<Set<GameCategory>>(new Set());
 
   /**
    * カテゴリボタンクリック時の処理
    * アニメーションを開始し、300ms後に終了
    */
-  const handleCategoryClick = useCallback((category: string) => {
+  const handleCategoryClick = useCallback((category: GameCategory) => {
     // アニメーション開始
     setAnimatingButtons(prev => new Set([...prev, category]));
     

@@ -1,9 +1,10 @@
 import React, { memo } from 'react';
 import { Button, Text } from "@chakra-ui/react";
+import { GameCategory } from '../../types/game';
 
 interface CategoryButtonProps {
-  /** カテゴリ名 */
-  category: string;
+  /** カテゴリ名（厳密な型） */
+  category: GameCategory;
   /** 選択状態 */
   isSelected: boolean;
   /** アニメーション中かどうか */

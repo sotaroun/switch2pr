@@ -9,21 +9,21 @@ import {
 import CategoryFilterOrg from '../../organisms/SearchSection/CategoryFilter';
 import SearchSection from '../../organisms/SearchSection/SearchSection';
 import GameGrid from '../../organisms/GameSection/GameGrid';
-import { Game } from '../../../types/game';
+import { Game, GameCategory } from '../../../types/game';
 
 interface CategoryTemplateProps {
   /** 全ゲーム一覧（検索用） */
   games: Game[];
-  /** 利用可能なカテゴリ一覧 */
-  categories: string[];
-  /** 選択中のカテゴリ */
-  selectedCategories: string[];
+  /** 利用可能なカテゴリ一覧（厳密な型） */
+  categories: readonly GameCategory[];
+  /** 選択中のカテゴリ（厳密な型） */
+  selectedCategories: GameCategory[];
   /** フィルター済みゲーム一覧 */
   filteredGames: Game[];
   
   // イベントハンドラー
   /** カテゴリ選択切り替え時のハンドラー */
-  onCategoryToggle: (category: string) => void;
+  onCategoryToggle: (category: GameCategory) => void;
   /** カテゴリリセット時のハンドラー */
   onReset: () => void;
   /** 検索結果選択時のハンドラー */
@@ -49,7 +49,7 @@ interface CategoryTemplateProps {
  * ```tsx
  * <CategoryTemplate
  *   games={allGames}
- *   categories={allCategories}
+ *   categories={ALL_GAME_CATEGORIES}
  *   selectedCategories={selected}
  *   filteredGames={filtered}
  *   onCategoryToggle={handleToggle}
