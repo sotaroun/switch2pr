@@ -8,23 +8,23 @@ export interface Comment {
   author: string;
   /** コメント内容 */
   content: string;
-  /** 投稿日時 */
+  /** 投稿日時（ISO 8601形式） */
   createdAt: string;
   /** いいね数（オプション） */
   likes?: number;
 }
 
 /**
- * ページネーション情報
+ * ページネーション情報を表す型
  */
 export interface PaginationInfo {
-  /** 次のページのカーソル */
+  /** 次のページのカーソル（nullの場合は最後のページ） */
   nextCursor: string | null;
-  /** データがまだあるか */
+  /** さらにデータが存在するか */
   hasMore: boolean;
-  /** 現在のページ */
+  /** 現在のページ番号 */
   currentPage: number;
-  /** 合計件数 */
+  /** データの合計件数 */
   totalCount: number;
 }
 
@@ -36,4 +36,16 @@ export interface CommentResponse {
   comments: Comment[];
   /** ページネーション情報 */
   pagination: PaginationInfo;
+}
+
+/**
+ * 無限スクロール用のデータ取得結果型
+ */
+export interface InfiniteScrollResult<T> {
+  /** 取得したデータ */
+  data: T[];
+  /** 次のカーソル */
+  nextCursor: string | null;
+  /** さらにデータがあるか */
+  hasMore: boolean;
 }
