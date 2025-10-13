@@ -1,18 +1,39 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Box, Stack, Text, Flex, Badge } from "@chakra-ui/react";
 
 interface GameCardProps {
   title: string;
   categories: string[];
-  iconUrl?: string; // 将来的に画像も使えるように
+  iconUrl?: string;
   onClick?: () => void;
+  /** ホバー開始時のハンドラー */
+  onMouseEnter?: () => void;
+  /** ホバー終了時のハンドラー */
+  onMouseLeave?: () => void;
 }
 
-const GameCard: React.FC<GameCardProps> = ({
+/**
+ * ゲームカード表示のMoleculeコンポーネント
+ * オーバーレイコメント対応版
+ * 
+ * @example
+ * ```tsx
+ * <GameCard
+ *   title="ゼルダの伝説"
+ *   categories={['アクション', 'RPG']}
+ *   onClick={() => router.push('/game/1')}
+ *   onMouseEnter={() => handleHover('1')}
+ *   onMouseLeave={handleLeave}
+ * />
+ * ```
+ */
+const GameCard: React.FC<GameCardProps> = memo(({
   title,
   categories,
   iconUrl,
-  onClick
+  onClick,
+  onMouseEnter,
+  onMouseLeave
 }) => {
   return (
     <Box
@@ -28,6 +49,8 @@ const GameCard: React.FC<GameCardProps> = ({
       cursor={onClick ? "pointer" : "default"}
       overflow="hidden"
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <Box p={4}>
         <Stack direction="column" gap={3}>
@@ -42,7 +65,11 @@ const GameCard: React.FC<GameCardProps> = ({
             justifyContent="center"
           >
             {iconUrl ? (
-              <img src={iconUrl} alt={title} style={{ width: '50%', height: '50%', objectFit: 'cover' }} />
+              <img 
+                src={iconUrl} 
+                alt={title} 
+                style={{ width: '50%', height: '50%', objectFit: 'cover' }} 
+              />
             ) : (
               <Text fontSize="2xl">🎮</Text>
             )}
@@ -77,6 +104,8 @@ const GameCard: React.FC<GameCardProps> = ({
       </Box>
     </Box>
   );
-};
+});
+
+GameCard.displayName = 'GameCard';
 
 export default GameCard;

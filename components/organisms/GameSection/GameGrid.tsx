@@ -8,6 +8,10 @@ interface GameGridProps {
   games: Game[];
   /** ゲームカードクリック時のハンドラー */
   onGameClick: (gameId: string) => void;
+  /** ゲームカードホバー時のハンドラー（オプション） */
+  onGameHover?: (gameId: string) => void;
+  /** ゲームカードホバー解除時のハンドラー（オプション） */
+  onGameLeave?: () => void;
   /** グリッドのタイトル */
   title?: string;
   /** 空の場合のメッセージ */
@@ -18,15 +22,15 @@ interface GameGridProps {
 
 /**
  * ゲーム一覧をグリッド表示するOrganismコンポーネント
- * - レスポンシブグリッドレイアウト
- * - 空状態の表示
- * - 件数表示
+ * オーバーレイコメント対応版
  * 
  * @example
  * ```tsx
  * <GameGrid
  *   games={filteredGames}
  *   onGameClick={(id) => router.push(`/game/${id}`)}
+ *   onGameHover={(id) => handleHover(id)}
+ *   onGameLeave={handleLeave}
  *   title="ゲーム一覧"
  * />
  * ```
@@ -34,6 +38,8 @@ interface GameGridProps {
 const GameGrid: React.FC<GameGridProps> = memo(({ 
   games, 
   onGameClick,
+  onGameHover,
+  onGameLeave,
   title = "ゲーム一覧",
   emptyMessage = "条件に合うゲームがありません",
   emptySubMessage = "別のカテゴリを選択してください"
@@ -72,6 +78,8 @@ const GameGrid: React.FC<GameGridProps> = memo(({
                   categories={game.categories}
                   iconUrl={game.iconUrl}
                   onClick={() => onGameClick(game.id)}
+                  onMouseEnter={onGameHover ? () => onGameHover(game.id) : undefined}
+                  onMouseLeave={onGameLeave}
                 />
               </Box>
             ))}

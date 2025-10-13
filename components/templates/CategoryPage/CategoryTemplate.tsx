@@ -30,6 +30,10 @@ interface CategoryTemplateProps {
   onSelectGame: (gameId: string) => void;
   /** ゲームカードクリック時のハンドラー */
   onGameClick: (gameId: string) => void;
+  /** ゲームカードホバー時のハンドラー（オプション） */
+  onGameHover?: (gameId: string) => void;
+  /** ゲームカードホバー解除時のハンドラー（オプション） */
+  onGameLeave?: () => void;
   
   // カスタマイズオプション
   /** ページタイトル */
@@ -40,10 +44,7 @@ interface CategoryTemplateProps {
 
 /**
  * カテゴリページ全体のレイアウトを提供するTemplateコンポーネント
- * - ページヘッダー
- * - 検索セクション
- * - カテゴリフィルター
- * - ゲーム一覧グリッド
+ * オーバーレイコメント対応版
  * 
  * @example
  * ```tsx
@@ -56,6 +57,8 @@ interface CategoryTemplateProps {
  *   onReset={handleReset}
  *   onSelectGame={handleSelectGame}
  *   onGameClick={handleGameClick}
+ *   onGameHover={handleGameHover}
+ *   onGameLeave={handleGameLeave}
  * />
  * ```
  */
@@ -68,6 +71,8 @@ const CategoryTemplate: React.FC<CategoryTemplateProps> = memo(({
   onReset,
   onSelectGame,
   onGameClick,
+  onGameHover,
+  onGameLeave,
   pageTitle = "カテゴリから探す",
   pageDescription = "お好みのジャンルでゲームを絞り込み"
 }) => {
@@ -112,6 +117,8 @@ const CategoryTemplate: React.FC<CategoryTemplateProps> = memo(({
           <GameGrid
             games={filteredGames}
             onGameClick={onGameClick}
+            onGameHover={onGameHover}
+            onGameLeave={onGameLeave}
           />
         </Stack>
       </Container>
