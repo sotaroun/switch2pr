@@ -3,19 +3,22 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import CategoryTemplate from '../../components/templates/CategoryPage/CategoryTemplate';
 import OverlayComments from '../../components/organisms/CommentSection/OverlayComments';
+import PageLoader from '../../components/organisms/Loading/PageLoader';
 import { useOverlayComments } from '../../hooks/useOverlayComments';
+import { usePageLoad } from '../../hooks/usePageLoad';
 import { fetchOverlayCommentsAPI } from '../../lib/overlayComments';
 import { Game, GameCategory, ALL_GAME_CATEGORIES } from '../../types/game';
 
 const CategoryPage: React.FC = () => {
   const router = useRouter();
+  const isPageLoading = usePageLoad(); // ページ読み込み状態
   const [selectedCategories, setSelectedCategories] = useState<GameCategory[]>([
     ...ALL_GAME_CATEGORIES
   ]);
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);
 
   // オーバーレイコメント機能
-  const { comments, startHover, endHover } = useOverlayComments({
+  const { comments, isLoading, startHover, endHover } = useOverlayComments({
     gameId: hoveredGameId,
     fetchComments: fetchOverlayCommentsAPI,
     maxDisplay: 20,
@@ -59,13 +62,11 @@ const CategoryPage: React.FC = () => {
     router.push(`/game/${gameId}`);
   }, [router]);
 
-  // ゲームカードホバー時
   const handleGameHover = useCallback((gameId: string) => {
     setHoveredGameId(gameId);
     startHover();
   }, [startHover]);
 
-  // ゲームカードホバー解除時
   const handleGameLeave = useCallback(() => {
     setHoveredGameId(null);
     endHover();
@@ -73,6 +74,9 @@ const CategoryPage: React.FC = () => {
 
   return (
     <>
+      {/* ページ全体のローディング */}
+      <PageLoader isLoading={isPageLoading} />
+      
       <CategoryTemplate
         games={allGames}
         categories={ALL_GAME_CATEGORIES}
@@ -87,7 +91,7 @@ const CategoryPage: React.FC = () => {
       />
       
       {/* オーバーレイコメント */}
-      <OverlayComments comments={comments} totalLanes={20} />
+      <OverlayComments comments={comments} isLoading={isLoading} totalLanes={20} />
     </>
   );
 };

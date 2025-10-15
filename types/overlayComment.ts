@@ -8,6 +8,8 @@ export interface OverlayComment {
   content: string;
   /** 作成日時 */
   createdAt: string;
+  /** Good数（将来的に使用） */
+  goodCount?: number;
 }
 
 /**
@@ -18,6 +20,8 @@ export interface FloatingComment extends OverlayComment {
   lane: number;
   /** アニメーション時間（秒） */
   duration: number;
+  /** フォントサイズ（ランダム） */
+  fontSize: number;
   /** 一意のキー */
   key: string;
 }

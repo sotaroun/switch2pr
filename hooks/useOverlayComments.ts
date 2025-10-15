@@ -10,6 +10,8 @@ interface UseOverlayCommentsOptions {
   maxDisplay?: number;
   /** レーン数 */
   totalLanes?: number;
+  /** 初期表示件数 */
+  initialBurst?: number;
 }
 
 interface UseOverlayCommentsReturn {
@@ -17,6 +19,8 @@ interface UseOverlayCommentsReturn {
   comments: FloatingComment[];
   /** ホバー状態 */
   isHovered: boolean;
+  /** コメント読み込み中 */
+  isLoading: boolean;
   /** ホバー開始 */
   startHover: () => void;
   /** ホバー終了 */
@@ -25,21 +29,24 @@ interface UseOverlayCommentsReturn {
 
 /**
  * 文字数に応じたアニメーション時間を計算
- * @param length - 文字数
- * @returns アニメーション時間（秒）
  */
 function calculateDuration(length: number): number {
-  if (length <= 10) return 4;
-  if (length <= 20) return 6;
-  if (length <= 30) return 8;
-  return 10;
+  if (length <= 10) return 12;
+  if (length <= 20) return 18;
+  if (length <= 30) return 24;
+  return 30;
+}
+
+/**
+ * ランダムなフォントサイズを取得（将来的にgoodCountベースに変更）
+ */
+function getRandomFontSize(): number {
+  const sizes = [14, 16, 18, 20, 24, 28];
+  return sizes[Math.floor(Math.random() * sizes.length)];
 }
 
 /**
  * ランダムなレーンを取得（重複を避ける）
- * @param usedLanes - 使用中のレーン
- * @param totalLanes - 総レーン数
- * @returns レーン番号
  */
 function getRandomLane(usedLanes: Set<number>, totalLanes: number): number {
   const availableLanes: number[] = [];
@@ -49,7 +56,6 @@ function getRandomLane(usedLanes: Set<number>, totalLanes: number): number {
     }
   }
   
-  // 空きレーンがなければランダムに選択
   if (availableLanes.length === 0) {
     return Math.floor(Math.random() * totalLanes);
   }
@@ -59,23 +65,17 @@ function getRandomLane(usedLanes: Set<number>, totalLanes: number): number {
 
 /**
  * オーバーレイコメント機能を提供するカスタムフック
- * 
- * @example
- * ```tsx
- * const { comments, isHovered, startHover, endHover } = useOverlayComments({
- *   gameId: hoveredGameId,
- *   fetchComments: fetchOverlayComments
- * });
- * ```
  */
 export function useOverlayComments({
   gameId,
   fetchComments,
   maxDisplay = 20,
-  totalLanes = 20
+  totalLanes = 20,
+  initialBurst = 10
 }: UseOverlayCommentsOptions): UseOverlayCommentsReturn {
   const [comments, setComments] = useState<FloatingComment[]>([]);
   const [isHovered, setIsHovered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [availableComments, setAvailableComments] = useState<OverlayComment[]>([]);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -86,7 +86,18 @@ export function useOverlayComments({
    */
   useEffect(() => {
     if (gameId && isHovered) {
-      fetchComments(gameId).then(setAvailableComments);
+      setIsLoading(true);
+      console.log('🔄 コメント読み込み開始');
+      fetchComments(gameId)
+        .then(comments => {
+          setAvailableComments(comments);
+          setIsLoading(false);
+          console.log('✅ コメント読み込み完了:', comments.length);
+        })
+        .catch(() => {
+          setIsLoading(false);
+          console.log('❌ コメント読み込み失敗');
+        });
     }
   }, [gameId, isHovered, fetchComments]);
 
@@ -94,41 +105,72 @@ export function useOverlayComments({
    * コメントを追加
    */
   const addComment = useCallback(() => {
-    if (availableComments.length === 0) return;
-    if (comments.length >= maxDisplay) return;
 
-    // ランダムにコメントを選択
+      console.log('📝 addComment呼び出し:', {
+    availableCommentsCount: availableComments.length,
+    currentCommentsCount: comments.length,
+    maxDisplay
+  });
+
+    if (availableComments.length === 0) {
+        console.warn('⚠️ コメントがありません');
+        return;
+    }
+    if (comments.length >= maxDisplay) {
+    console.warn('⚠️ [addComment] 最大表示数に達しています');
+    return;
+  }
+
     const randomComment = availableComments[
       Math.floor(Math.random() * availableComments.length)
     ];
 
-    // 使用中のレーンを取得
+    console.log('✨ [addComment] コメント追加実行');
+
     const usedLanes = new Set(comments.map(c => c.lane));
     const lane = getRandomLane(usedLanes, totalLanes);
     const duration = calculateDuration(randomComment.content.length);
+    const fontSize = getRandomFontSize();
 
     const floatingComment: FloatingComment = {
       ...randomComment,
       lane,
       duration,
+      fontSize,
       key: `${randomComment.id}-${commentCounterRef.current++}`
     };
 
     setComments(prev => [...prev, floatingComment]);
 
-    // アニメーション終了後に削除
+    // アニメーション完全終了まで待機（画面左端通過まで）
+    // 文字幅を考慮して少し余裕を持たせる
     setTimeout(() => {
       setComments(prev => prev.filter(c => c.key !== floatingComment.key));
-    }, duration * 1000);
-  }, [availableComments, comments.length, maxDisplay, totalLanes]);
+    }, (duration + 1) * 1000); // +1秒余裕を持たせる
+  }, [availableComments, comments, maxDisplay, totalLanes]);
+
+  /**
+   * 初期バーストでコメントを一気に表示
+   */
+  const initialBurstComments = useCallback(() => {
+    for (let i = 0; i < initialBurst; i++) {
+      setTimeout(() => {
+        addComment();
+      }, i * 100); // 100msずつずらして表示
+    }
+  }, [addComment, initialBurst]);
 
   /**
    * ホバー開始
    */
   const startHover = useCallback(() => {
-    setIsHovered(true);
+  console.log('👆 [startHover] ホバー開始');
+  setIsHovered(true);
     
-    // 定期的にコメントを追加（500-1500msランダム間隔）
+  // 即座に初期バースト開始
+  initialBurstComments();
+
+    // 定期的にコメントを追加
     const scheduleNext = () => {
       const delay = 500 + Math.random() * 1000;
       intervalRef.current = setTimeout(() => {
@@ -136,13 +178,17 @@ export function useOverlayComments({
         scheduleNext();
       }, delay);
     };
-    
+
+  // 初期バースト後すぐに定期追加開始
+  setTimeout(() => {
     scheduleNext();
-  }, [addComment]);
+  }, 500);
+    
+  }, [addComment, initialBurstComments, initialBurst]);
 
   /**
    * ホバー終了
-   * 新規コメント追加を停止（既存は流れ切るまで表示）
+   * 表示中のコメントを即座に削除
    */
   const endHover = useCallback(() => {
     setIsHovered(false);
@@ -150,6 +196,8 @@ export function useOverlayComments({
       clearTimeout(intervalRef.current);
       intervalRef.current = null;
     }
+    // 表示中のコメントを即座に削除
+    setComments([]);
   }, []);
 
   /**
@@ -166,6 +214,7 @@ export function useOverlayComments({
   return {
     comments,
     isHovered,
+    isLoading,
     startHover,
     endHover
   };

@@ -8,6 +8,8 @@ interface OverlayCommentsProps {
   comments: FloatingCommentType[];
   /** レーン数 */
   totalLanes?: number;
+    /** コメント読み込み中フラグ（オプション） */
+  isLoading?: boolean;
 }
 
 /**
