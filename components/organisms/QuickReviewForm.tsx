@@ -128,11 +128,16 @@ export function QuickReviewForm() {
         const client = getBrowserSupabaseClient();
         await ensureAnonReviewSession(client);
 
+        const trimmedUserName = formState.userName.trim();
+        const trimmedComment = formState.comment.trim();
+        const reviewId = crypto.randomUUID();
+
         const { error } = await client.from("oneliner_reviews").insert({
+          id: reviewId,
           game_id: gameId,
-          user_name: formState.userName.trim(),
+          user_name: trimmedUserName,
           rating: formState.rating,
-          comment: formState.comment.trim(),
+          comment: trimmedComment,
           status: "pending",
         });
 
@@ -141,6 +146,23 @@ export function QuickReviewForm() {
         }
 
         setFormState(initialState);
+        void (async () => {
+          try {
+            await fetch("/api/reviews/notify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                gameId,
+                userName: trimmedUserName,
+                rating: formState.rating,
+                comment: trimmedComment,
+                reviewId,
+              }),
+            });
+          } catch (notifyError) {
+            console.error("Failed to send review notification", notifyError);
+          }
+        })();
         setFeedback({
           status: "success",
           message: "レビューを受け付けました。管理者の承認後に表示されます。",

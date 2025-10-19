@@ -21,14 +21,17 @@
 - Slack 側で新しい Webhook URL を発行したら、`.env.local` に以下のように保存。
   ```env
   SLACK_WEBHOOK_URL=https://hooks.slack.com/services/xxxxx/xxxxx/xxxx
+  SLACK_SIGNING_SECRET=xxxxxx
   ```
-- Next.js で通知ユーティリティを追加。例えば `lib/slack/sendReviewNotification.ts` を作り、投稿内容（ユーザー名 / 評価 / コメント / ゲームURL）を整形して Webhook に送信。
+- Next.js で通知ユーティリティを追加。例えば `lib/slack/notifications.ts` を作り、投稿内容（ユーザー名 / 評価 / コメント / ゲームURL）を整形して Webhook に送信。
 - 投稿時の Supabase insert が成功したタイミングでこのユーティリティを呼び出す。エラーになっても投稿自体が失敗しないように try/catch で握っておく。
+- Slack App の「Interactivity & Shortcuts」を有効化し、リクエストURLを `https://<your-domain>/api/slack/review-action` に設定。ボタン押下時のイベントがここに届く。
 
 ### 2. 承認 API を用意する
 - 実装場所
   1. **Supabase Edge Function**（本番向けに安全。サービスロールキーを使って DB を更新できる）
   - `supabase/functions/approve-oneliner-review/index.ts` を作成。
+  - 環境変数 `SUPABASE_SERVICE_ROLE_KEY` を Edge Function や Next.js から利用できるように設定しておく。
   - リクエストBody例：
     ```json
     {
@@ -49,7 +52,7 @@
 ### 3. 管理画面 `/admin/reviews` を作る
 - **アクセス制限**:
   - `app/admin/reviews/page.tsx` を作成。
-  - サーバーコンポーネントで Supabase のサーバークライアントを使い、ログインユーザーの `role` を確認して `admin` 以外はリダイレクト。
+  - 簡易的な保護として `middleware.ts` で Basic 認証（`.env` に `ADMIN_BASIC_USER` / `ADMIN_BASIC_PASS`）をかける。将来的に Supabase Auth へ置き換え可能。
 - **UI 構成**:
   - `status = 'pending'` のレビュー一覧を取得。
   - 表示項目：ユーザー名、評価、コメント全文、投稿日時、対象ゲームID（またはゲーム名）、承認ボタン、却下ボタン、却下理由入力欄。
@@ -69,7 +72,7 @@
 - **メールでの承認**: Supabase Functions と SendGrid などを組み合わせてメールベースの承認も可能。
 
 ## 参考パス・ファイル構成案
-- Slack通知ユーティリティ: `lib/slack/sendReviewNotification.ts`
+- Slack通知ユーティリティ: `lib/slack/notifications.ts`
 - Edge Function: `supabase/functions/approve-oneliner-review/index.ts`
 - 管理画面サーバークライアント: `lib/supabase/server-client.ts`
 - 管理画面ページ: `app/admin/reviews/page.tsx`（場合によっては `components/templates/Admin/ReviewApproval.tsx` を作る）
@@ -77,4 +80,4 @@
 ## まとめ
 - **最初のゴール**: 投稿時に Slack 通知、管理画面で承認 → Web 反映ができればOK。
 - **注意したい点**: 管理者認証（誰が承認できるか）、Edge Function でのサービスキー取り扱い、Slack Webhook URL の秘匿。
-- 段階的に進めることで、まず通知→Web承認を完成させ、その後余裕があれば Slack ボタン対応や承認結果の再通知などに着手するとスムーズです。
+- 段階的に進めることで、まず通知→Web承認を完成させ、その後余裕があれば Slack ボタン対応や承認結果の再通知などに着手。
