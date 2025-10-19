@@ -14,6 +14,11 @@ import { sortOptions } from "../molecules/review-table/config";
 import { buildHelpfulStorageKey } from "../molecules/review-table/utils";
 import type { GameReviews, OnelinerReview, Source, YoutubeReview } from "../molecules/review-table/types";
 import type { GameDetailResponse } from "@/types/game-detail";
+import {
+  ensureAnonReviewSession,
+  getBrowserSupabaseClient,
+  isSupabaseConfigured,
+} from "@/lib/supabase/browser-client";
 
 const HELPFUL_STORAGE_KEY = "switch2pr_helpful_votes";
 
@@ -45,6 +50,7 @@ export default function ReviewSwitcherTable() {
     (params as Record<string, string | string[] | undefined>).id ??
     (params as Record<string, string | string[] | undefined>).gameId;
   const gameId = typeof rawId === "string" ? rawId : null;
+  const supabaseConfigured = isSupabaseConfigured();
 
   const [src, setSrc] = useState<Source>("youtube");
   const [reviews, setReviews] = useState<GameReviews>({ youtube: [], oneliner: [] });
@@ -92,42 +98,57 @@ export default function ReviewSwitcherTable() {
   const votedSet = useMemo(() => new Set(votedKeys), [votedKeys]);
 
   const handleHelpfulVote = useCallback(
-    (review: OnelinerReview) => {
-      if (!storageHydrated) return;
+    async (review: OnelinerReview) => {
+      if (!storageHydrated || !supabaseConfigured || !gameId || !review.id) {
+        return;
+      }
 
       const storageKey = buildHelpfulStorageKey(gameId, review);
+      if (votedSet.has(storageKey)) {
+        return;
+      }
 
-      let applied = false;
-      setVotedKeys((prev) => {
-        if (prev.includes(storageKey)) {
-          return prev;
-        }
-        applied = true;
-        return [...prev, storageKey];
-      });
+      try {
+        const client = getBrowserSupabaseClient();
+        const { voterToken } = await ensureAnonReviewSession(client);
 
-      if (!applied) return;
+        const { error } = await client.from("oneliner_review_votes").insert({
+          review_id: review.id,
+          voter_token: voterToken,
+        });
 
-      setHelpfulOverrides((prev) => {
-        const base = prev[storageKey] ?? review.helpful ?? 0;
-        return { ...prev, [storageKey]: base + 1 };
-      });
-
-      setReviews((prev) => ({
-        ...prev,
-        oneliner: prev.oneliner.map((item) => {
-          const key = buildHelpfulStorageKey(gameId, item);
-          if (key !== storageKey) {
-            return item;
+        if (error) {
+          if (error.code === "23505") {
+            setVotedKeys((prev) => [...prev, storageKey]);
+            return;
           }
-          return {
-            ...item,
-            helpful: (item.helpful ?? 0) + 1,
-          };
-        }),
-      }));
+          throw error;
+        }
+
+        setVotedKeys((prev) => [...prev, storageKey]);
+        setHelpfulOverrides((prev) => {
+          const base = prev[storageKey] ?? review.helpful ?? 0;
+          return { ...prev, [storageKey]: base + 1 };
+        });
+
+        setReviews((prev) => ({
+          ...prev,
+          oneliner: prev.oneliner.map((item) => {
+            if (item.id !== review.id) {
+              return item;
+            }
+            return {
+              ...item,
+              helpful: (item.helpful ?? 0) + 1,
+            };
+          }),
+        }));
+      } catch (error) {
+        console.error("Failed to record helpful vote", error);
+        setError((prev) => prev ?? "参考になった投票に失敗しました。");
+      }
     },
-    [gameId, storageHydrated]
+    [gameId, storageHydrated, supabaseConfigured, votedSet]
   );
 
   const columns = useMemo(() => {
@@ -145,20 +166,23 @@ export default function ReviewSwitcherTable() {
         ...column,
         render: (row: OnelinerReview) => {
           const storageKey = buildHelpfulStorageKey(gameId, row);
-          const isDisabled = !storageHydrated || votedSet.has(storageKey);
+          const isDisabled =
+            !supabaseConfigured || !storageHydrated || votedSet.has(storageKey) || !row.id;
           const count = helpfulOverrides[storageKey] ?? row.helpful ?? 0;
 
           return (
             <HelpfulVoteButton
               count={count}
-              onClick={() => handleHelpfulVote(row)}
+              onClick={() => {
+                void handleHelpfulVote(row);
+              }}
               isDisabled={isDisabled}
             />
           );
         },
       };
     });
-  }, [gameId, handleHelpfulVote, helpfulOverrides, src, storageHydrated, votedSet]);
+  }, [gameId, handleHelpfulVote, helpfulOverrides, src, storageHydrated, supabaseConfigured, votedSet]);
 
   const rows = reviews[src];
   const total = rows.length;
@@ -217,19 +241,36 @@ export default function ReviewSwitcherTable() {
           warnings.push("YouTube検索用のゲームタイトルが見つかりません。");
         }
 
-        try {
-          const mockResponse = await fetch(`/api/mocks/${gameId}`, { cache: "no-store" });
-          if (mockResponse.ok) {
-            const mockJson = (await mockResponse.json()) as {
-              reviews?: Partial<GameReviews>;
-            };
-            onelinerReviews = mockJson.reviews?.oneliner ?? [];
-          } else {
-            warnings.push("一言コメントのモック取得に失敗しました。");
+        if (supabaseConfigured) {
+          try {
+            const client = getBrowserSupabaseClient();
+            const { data, error } = await client
+              .from("oneliner_reviews")
+              .select("id, user_name, comment, rating, helpful_count, status, created_at")
+              .eq("game_id", gameId)
+              .eq("status", "approved")
+              .order("created_at", { ascending: false });
+
+            if (error) {
+              console.error("Failed to fetch oneliner reviews", error);
+              warnings.push("一言コメント取得中にエラーが発生しました。");
+            } else {
+              onelinerReviews = (data ?? []).map((item) => ({
+                id: item.id,
+                user: item.user_name,
+                comment: item.comment,
+                rating: item.rating ?? 0,
+                helpful: item.helpful_count ?? 0,
+                status: item.status ?? undefined,
+                postedAt: item.created_at ?? undefined,
+              }));
+            }
+          } catch (error) {
+            console.error("Failed to fetch oneliner reviews", error);
+            warnings.push("一言コメント取得中にエラーが発生しました。");
           }
-        } catch (error) {
-          console.error("Failed to fetch oneliner reviews", error);
-          warnings.push("一言コメント取得中にエラーが発生しました。");
+        } else {
+          warnings.push("Supabaseが未設定のため、一言コメントは表示のみです。");
         }
 
         if (!active) {
@@ -265,7 +306,7 @@ export default function ReviewSwitcherTable() {
     return () => {
       active = false;
     };
-  }, [gameId]);
+  }, [gameId, supabaseConfigured]);
 
   const subtitle = subtitleTemplate[src](total);
   const headerIcon = headerIconMap[src];

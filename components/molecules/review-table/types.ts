@@ -17,6 +17,7 @@ export type YoutubeReview = {
 };
 
 export type OnelinerReview = {
+  id?: string;
   user: string;
   comment: string;
   rating: number;
