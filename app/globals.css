@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Netflix-like dark palette */
+  --background: #141414; /* near-black */
+  --foreground: #e5e5e5; /* soft white */
 }
 
 @theme inline {
@@ -12,12 +13,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Dark mode is the default site-wide, so no media override needed */
 
 body {
   background: var(--background);
