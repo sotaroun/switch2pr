@@ -182,14 +182,12 @@ export function QuickReviewForm() {
     <Box
       as="section"
       w="full"
-      maxW="520px"
-      mx="auto"
-      bg="linear-gradient(160deg, rgba(16, 28, 54, 0.82), rgba(12, 20, 48, 0.76))"
-      borderRadius="18px"
-      border="1px solid rgba(116, 146, 255, 0.18)"
-      boxShadow="0 18px 48px rgba(22, 44, 120, 0.2)"
-      px={{ base: 4, md: 5 }}
-      py={{ base: 4, md: 5 }}
+      bg="rgba(10, 15, 36, 0.92)"
+      borderRadius="20px"
+      border="1px solid rgba(94, 126, 255, 0.18)"
+      boxShadow="0 22px 60px rgba(25, 56, 160, 0.28)"
+      px={{ base: 4, md: 6 }}
+      py={{ base: 5, md: 6 }}
     >
       <Stack spacing={4} as="form" onSubmit={handleSubmit}>
             <Field.Root
@@ -205,11 +203,11 @@ export function QuickReviewForm() {
                 placeholder="ニックネームを入力"
                 size="md"
                 disabled={!supabaseConfigured}
-                borderRadius="12px"
-                bg="rgba(18, 33, 70, 0.85)"
-                border="1px solid rgba(114, 144, 255, 0.26)"
-                _placeholder={{ color: "rgba(190, 204, 255, 0.46)" }}
-                color="rgba(253, 254, 255, 0.95)"
+                borderRadius="999px"
+                bg="rgba(12, 28, 68, 0.9)"
+                border="1px solid rgba(98, 130, 255, 0.35)"
+                _placeholder={{ color: "rgba(200, 212, 255, 0.55)" }}
+                color="rgba(253, 254, 255, 0.92)"
               />
               {errors.userName && <Field.ErrorText>{errors.userName}</Field.ErrorText>}
             </Field.Root>
@@ -227,8 +225,8 @@ export function QuickReviewForm() {
                   precision={1}
                   readOnly={!supabaseConfigured}
                   size="md"
-                  activeColor="#ffd966"
-                  idleColor="rgba(255, 255, 255, 0.24)"
+                  activeColor="#ffe27a"
+                  idleColor="rgba(255, 255, 255, 0.18)"
                   onChange={(value) =>
                     updateField("rating", Math.max(0, Math.min(5, Math.round(value))))
                   }
@@ -255,11 +253,11 @@ export function QuickReviewForm() {
                 resize="vertical"
                 rows={4}
                 disabled={!supabaseConfigured}
-                borderRadius="16px"
-                bg="rgba(18, 33, 70, 0.85)"
-                border="1px solid rgba(114, 144, 255, 0.26)"
-                _placeholder={{ color: "rgba(190, 204, 255, 0.46)" }}
-                color="rgba(253, 254, 255, 0.95)"
+                borderRadius="20px"
+                bg="rgba(12, 28, 68, 0.9)"
+                border="1px solid rgba(98, 130, 255, 0.35)"
+                _placeholder={{ color: "rgba(200, 212, 255, 0.55)" }}
+                color="rgba(253, 254, 255, 0.92)"
               />
               {errors.comment && <Field.ErrorText>{errors.comment}</Field.ErrorText>}
               <Text
@@ -272,18 +270,17 @@ export function QuickReviewForm() {
             </Field.Root>
 
         <Button
-          type="submit"
-          variant="outline"
-          borderRadius="14px"
-          border="1px solid rgba(120, 150, 255, 0.45)"
-          color="rgba(234, 240, 255, 0.92)"
-          bg="rgba(60, 110, 255, 0.18)"
-          _hover={{ bg: "rgba(60, 110, 255, 0.28)" }}
-          _active={{ bg: "rgba(60, 110, 255, 0.36)" }}
-          isLoading={submitting}
-          isDisabled={!gameId || !supabaseConfigured}
-          leftIcon={<Icon as={FiSend} />}
-        >
+              type="submit"
+              variant="outline"
+              borderRadius="999px"
+              border="1px solid rgba(120, 150, 255, 0.6)"
+              color="rgba(222, 232, 255, 0.92)"
+              _hover={{ bg: "rgba(80, 120, 255, 0.18)" }}
+              _active={{ bg: "rgba(80, 120, 255, 0.28)" }}
+              isLoading={submitting}
+              isDisabled={!gameId || !supabaseConfigured}
+              leftIcon={<Icon as={FiSend} />}
+            >
         レビューを投稿
         </Button>
 
