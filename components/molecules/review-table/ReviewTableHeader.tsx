@@ -56,7 +56,9 @@ export const ReviewTableHeader = ({ icon, title, subtitle, tabs, ...props }: Rev
               : "rgba(255,255,255,0.08)",
             color: "white",
           }}
-          cursor="default"
+          cursor={tab.onClick && !tab.isActive ? "pointer" : "default"}
+          onClick={tab.onClick}
+          disabled={tab.isActive}
           fontWeight="semibold"
         >
           {tab.label}
