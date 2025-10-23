@@ -39,7 +39,7 @@ async function postToSlack(message: unknown) {
 }
 
 export async function sendReviewNotification(payload: ReviewNotificationPayload) {
-  const { reviewId, gameId, userName, rating, comment } = payload;
+  const { gameId, userName, rating, comment } = payload;
 
   const blocks: unknown[] = [
     {

@@ -1,15 +1,15 @@
 import { Box, Button, HStack } from "@chakra-ui/react";
 import { BubbleIcon } from "../../atoms/icons/BubbleIcon";
 import { YouTubeIcon } from "../../atoms/icons/YouTubeIcon";
-import { sourceButtonThemes, sourceLabels, sourceOrder } from "./config";
-import type { Source } from "./types";
+import { tabButtonThemes, tabLabels, tabOrder } from "./config";
+import type { ReviewTabKey } from "./types";
 
 type ReviewSourceToggleProps = {
-  value: Source;
-  onChange: (next: Source) => void;
+  value: ReviewTabKey;
+  onChange: (next: ReviewTabKey) => void;
 };
 
-const renderIcon = (source: Source, active: boolean) => {
+const renderIcon = (source: ReviewTabKey, active: boolean) => {
   if (source === "youtube") {
     return (
       <YouTubeIcon
@@ -19,6 +19,10 @@ const renderIcon = (source: Source, active: boolean) => {
         accentColor={active ? "#ffffff" : "#2bc3ff"}
       />
     );
+  }
+
+  if (source === "form") {
+    return null;
   }
 
   return (
@@ -44,9 +48,9 @@ export const ReviewSourceToggle = ({ value, onChange }: ReviewSourceToggleProps)
       px={2.5}
       py={1.5}
     >
-      {sourceOrder.map((key) => {
+      {tabOrder.map((key) => {
         const active = value === key;
-        const theme = sourceButtonThemes[key];
+        const theme = tabButtonThemes[key];
         return (
           <Button
             key={key}
@@ -73,7 +77,7 @@ export const ReviewSourceToggle = ({ value, onChange }: ReviewSourceToggleProps)
             transition="all 0.2s ease"
             gap={2.5}
           >
-            {sourceLabels[key]}
+            {tabLabels[key]}
           </Button>
         );
       })}

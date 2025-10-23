@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 export type Source = "youtube" | "oneliner";
+export type ReviewTabKey = Source | "form";
 
 export type YoutubeReview = {
   videoId: string;
