@@ -16,12 +16,12 @@ export const HelpfulVoteButton = ({ count, ...props }: HelpfulVoteButtonProps) =
     justifyContent="center"
     minW="44px"
     py={1}
-    color="rgba(255, 230, 150, 0.95)"
+    color="rgba(255, 255, 255, 0.75)"
     bg="transparent"
     _hover={{
       transform: "translateY(-1px)",
-      color: "rgba(255, 240, 190, 0.98)",
-      bg: "rgba(255, 227, 140, 0.12)",
+      color: "rgba(255, 255, 255, 0.95)",
+      bg: "rgba(255, 255, 255, 0.12)",
     }}
     _active={{ transform: "translateY(0)" }}
     _disabled={{
@@ -29,11 +29,11 @@ export const HelpfulVoteButton = ({ count, ...props }: HelpfulVoteButtonProps) =
       cursor: "default",
       transform: "none",
       bg: "transparent",
-      color: "rgba(255, 230, 150, 0.75)",
+      color: "rgba(255, 255, 255, 0.45)",
     }}
     {...props}
   >
-    <Icon as={LuThumbsUp} boxSize={4.5} color="rgba(255, 227, 140, 0.95)" />
+    <Icon as={LuThumbsUp} boxSize={4.5} color="currentColor" />
     <Text as="span" fontSize="xs" fontWeight="semibold" mt={1} color="inherit">
       {count}
     </Text>

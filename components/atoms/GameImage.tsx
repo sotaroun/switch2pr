@@ -69,13 +69,27 @@ export const GameImage: React.FC = () => {
   // 画面で表示させる部分
   if (isLoading) {
     return (
-      <VStack colorPalette="teal">
-        <Spinner color="colorPalette.600" />
-        <Text color="colorPalette.600">Loading...</Text>
+      <VStack colorPalette="gray">
+        <Spinner color="rgba(255, 255, 255, 0.7)" />
+        <Text color="rgba(255, 255, 255, 0.65)">Loading...</Text>
       </VStack>
     );
   }
-  if (!coverImageUrl) {return <Box>No image</Box>; }// 画像がない場合はメッセージを表示
+  if (!coverImageUrl) {
+    // 画像がない場合はメッセージを表示
+    return (
+      <Box
+        px={4}
+        py={3}
+        borderRadius="lg"
+        border="1px solid rgba(255, 255, 255, 0.08)"
+        bg="rgba(28, 28, 28, 0.9)"
+        color="rgba(255, 255, 255, 0.65)"
+      >
+        No image
+      </Box>
+    );
+  }
   return (
     <Image
       src={coverImageUrl}
@@ -83,6 +97,7 @@ export const GameImage: React.FC = () => {
       htmlWidth="400px"
       htmlHeight="300px"
       borderRadius="lg"
+      border="1px solid rgba(255, 255, 255, 0.08)"
     />
   );
 };

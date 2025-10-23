@@ -7,7 +7,7 @@ export type YouTubeIconProps = IconProps & {
 };
 
 export const YouTubeIcon = ({
-  accentColor = "#0b1027",
+  accentColor = "rgba(255, 255, 255, 0.85)",
   bodyColor = "transparent",
   ...props
 }: YouTubeIconProps) => (

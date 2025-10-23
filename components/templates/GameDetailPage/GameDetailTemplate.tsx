@@ -11,8 +11,12 @@ export function GameDetailTemplate() {
       spacing={{ base: 6, xl: 8 }}
       w="full"
       align="center"
+      justify="flex-start"
+      minH="100vh"
       py={{ base: 6, md: 10 }}
       px={{ base: 4, md: 8 }}
+      bg="#050505"
+      color="rgba(243, 244, 246, 0.92)"
     >
       <Box w="full" maxW="960px">
         <GameHeader />

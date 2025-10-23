@@ -38,13 +38,13 @@ const headerIconMap: Record<ReviewTabKey, ReactNode> = {
   youtube: (
     <YouTubeIcon
       boxSize="2.5rem"
-      color="#ff6074"
-      bodyColor="#ff3145"
-      accentColor="#ffffff"
+      color="rgba(255, 255, 255, 0.85)"
+      bodyColor="rgba(255, 255, 255, 0.1)"
+      accentColor="rgba(255, 255, 255, 0.9)"
     />
   ),
-  oneliner: <BubbleIcon boxSize="2.3rem" color="#57c6ff" />,
-  form: <BubbleIcon boxSize="2.3rem" color="#7ed957" />,
+  oneliner: <BubbleIcon boxSize="2.3rem" color="rgba(255, 255, 255, 0.85)" />,
+  form: <BubbleIcon boxSize="2.3rem" color="rgba(255, 255, 255, 0.85)" />,
 };
 
 export default function ReviewSwitcherTable() {
@@ -321,7 +321,7 @@ export default function ReviewSwitcherTable() {
   const currentSortTabs = isFormTab ? [] : sortOptions[activeSource];
 
   const tableContent = (
-    <Box borderRadius="xl" overflowX="auto">
+    <Box borderRadius="xl" overflowX="auto" border="1px solid rgba(255, 255, 255, 0.08)">
       <Table.Root
         size="md"
         variant="simple"
@@ -331,17 +331,16 @@ export default function ReviewSwitcherTable() {
             fontWeight: "semibold",
             textTransform: "none",
             letterSpacing: "0.02em",
-            color: "#FDFEFF",
-            background:
-              "linear-gradient(135deg, rgba(24, 38, 96, 0.9), rgba(19, 33, 82, 0.9))",
-            borderColor: "rgba(52, 75, 160, 0.75)",
-            textShadow: "0 0 8px rgba(8, 14, 40, 0.6)",
+            color: "rgba(255, 255, 255, 0.92)",
+            background: "rgba(34, 34, 34, 0.95)",
+            borderColor: "rgba(255, 255, 255, 0.08)",
+            textShadow: "none",
           },
           td: {
             fontSize: "sm",
             color: "rgba(255,255,255,0.88)",
-            borderColor: "rgba(82, 108, 175, 0.28)",
-            borderBottom: "1px solid rgba(82, 108, 175, 0.28)",
+            borderColor: "rgba(255, 255, 255, 0.06)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
           },
           "tbody tr:last-of-type td": {
             borderBottomWidth: 0,
@@ -380,8 +379,8 @@ export default function ReviewSwitcherTable() {
             rows.map((row, index) => (
               <Table.Row
                 key={`${activeSource}-${index}`}
-                bg="rgba(255,255,255,0.015)"
-                _hover={{ bg: "rgba(255,255,255,0.05)" }}
+                bg="rgba(255, 255, 255, 0.02)"
+                _hover={{ bg: "rgba(255, 255, 255, 0.08)" }}
                 transition="background 0.2s ease"
               >
                 {columns.map((column) => (
@@ -406,13 +405,18 @@ export default function ReviewSwitcherTable() {
       <Box
         w="full"
         maxW="960px"
-        bg="rgba(16, 22, 54, 0.94)"
+        bg="rgba(26, 26, 26, 0.95)"
         borderRadius="2xl"
-        border="1px solid rgba(94, 126, 255, 0.22)"
-        boxShadow="0 24px 60px rgba(24, 64, 216, 0.25)"
+        border="1px solid rgba(255, 255, 255, 0.08)"
+        boxShadow="0 24px 60px rgba(0, 0, 0, 0.4)"
         px={{ base: 4, md: 6 }}
         py={{ base: 5, md: 6 }}
         textAlign="left"
+        transition="background 0.2s ease, border-color 0.2s ease"
+        _hover={{
+          bg: "rgba(36, 36, 36, 0.95)",
+          borderColor: "rgba(255, 255, 255, 0.12)",
+        }}
       >
         <Stack spacing={5}>
           <ReviewTableHeader
@@ -423,7 +427,7 @@ export default function ReviewSwitcherTable() {
           />
 
           {!isFormTab && error && (
-            <Text color="rgba(255, 102, 132, 0.85)" fontSize="sm">
+            <Text color="rgba(255, 180, 180, 0.85)" fontSize="sm">
               {error}
             </Text>
           )}

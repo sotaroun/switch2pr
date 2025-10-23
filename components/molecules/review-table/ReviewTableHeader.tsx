@@ -21,10 +21,10 @@ export const ReviewTableHeader = ({ icon, title, subtitle, tabs, ...props }: Rev
     <HStack align="flex-start" spacing={3}>
       <Box flexShrink={0}>{icon}</Box>
       <Box>
-        <Text fontSize="xl" fontWeight="bold" color="whiteAlpha.900">
+        <Text fontSize="xl" fontWeight="bold" color="rgba(255, 255, 255, 0.95)">
           {title}
         </Text>
-        <Text fontSize="sm" color="rgba(140, 164, 255, 0.85)">
+        <Text fontSize="sm" color="rgba(255, 255, 255, 0.6)">
           {subtitle}
         </Text>
       </Box>
@@ -39,22 +39,12 @@ export const ReviewTableHeader = ({ icon, title, subtitle, tabs, ...props }: Rev
           px={4}
           py={2}
           border="1px solid"
-          borderColor={
-            tab.isActive
-              ? "rgba(92, 171, 255, 0.6)"
-              : "rgba(255,255,255,0.14)"
-          }
-          bg={
-            tab.isActive
-              ? "linear(135deg, rgba(64, 149, 255, 0.45), rgba(39, 112, 255, 0.3))"
-              : "rgba(255,255,255,0.04)"
-          }
-          color={tab.isActive ? "white" : "rgba(255,255,255,0.75)"}
+          borderColor="rgba(255, 255, 255, 0.16)"
+          bg={tab.isActive ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.04)"}
+          color={tab.isActive ? "rgba(255, 255, 255, 0.95)" : "rgba(255,255,255,0.7)"}
           _hover={{
-            bg: tab.isActive
-              ? "linear(135deg, rgba(64, 149, 255, 0.6), rgba(39, 112, 255, 0.45))"
-              : "rgba(255,255,255,0.08)",
-            color: "white",
+            bg: "rgba(255, 255, 255, 0.12)",
+            color: "rgba(255, 255, 255, 0.95)",
           }}
           cursor="default"
           fontWeight="semibold"

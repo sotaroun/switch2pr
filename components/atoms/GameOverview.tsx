@@ -27,9 +27,22 @@ export default function GameOverview() {
 
   const summary = useMemo(() => data?.summary ?? "概要情報は未掲載です。", [data]);
 
+  const cardProps = {
+    p: 4,
+    borderWidth: "1px",
+    borderRadius: "xl",
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    bg: "rgba(28, 28, 28, 0.9)",
+    transition: "background 0.2s ease, border-color 0.2s ease",
+    _hover: {
+      bg: "rgba(42, 42, 42, 0.92)",
+      borderColor: "rgba(255, 255, 255, 0.12)",
+    },
+  } as const;
+
   if (loading) {
     return (
-      <Box p={4} borderWidth="1px" borderRadius="xl">
+      <Box {...cardProps}>
         <Skeleton height="28px" mb={3} />
         <SkeletonText noOfLines={3} />
       </Box>
@@ -38,11 +51,13 @@ export default function GameOverview() {
 
   if (!data) {
     return (
-      <Box p={4} borderWidth="1px" borderRadius="xl">
-        <Heading size="md" mb={2}>
+      <Box {...cardProps}>
+        <Heading size="md" mb={2} color="rgba(255, 255, 255, 0.92)">
           概要
         </Heading>
-        <Text color="gray.500">{error ?? "ゲーム情報が見つかりません。"}</Text>
+        <Text color="rgba(255, 255, 255, 0.6)">
+          {error ?? "ゲーム情報が見つかりません。"}
+        </Text>
       </Box>
     );
   }
@@ -51,12 +66,12 @@ export default function GameOverview() {
   const hasGenres = genres.length > 0;
 
   return (
-    <Box p={4} borderWidth="1px" borderRadius="xl">
-      <Heading size="md" mb={2}>
+    <Box {...cardProps}>
+      <Heading size="md" mb={2} color="rgba(255, 255, 255, 0.95)">
         {data.name}
       </Heading>
 
-      <Text whiteSpace="pre-wrap" lineHeight={1.8}>
+      <Text whiteSpace="pre-wrap" lineHeight={1.8} color="rgba(255, 255, 255, 0.85)">
         {summary}
       </Text>
 
@@ -65,10 +80,19 @@ export default function GameOverview() {
           {genres.map((genre) => (
             <Badge
               key={genre}
-              colorScheme="blue"
+              colorScheme="gray"
               size="lg"
               cursor="pointer"
-              _hover={{ bg: "blue.600" }}
+              bg="rgba(255, 255, 255, 0.08)"
+              color="rgba(255, 255, 255, 0.85)"
+              borderRadius="full"
+              px={3}
+              py={1}
+              border="1px solid rgba(255, 255, 255, 0.12)"
+              _hover={{
+                bg: "rgba(255, 255, 255, 0.16)",
+                color: "rgba(255, 255, 255, 0.95)",
+              }}
               onClick={() => console.log(`ジャンル "${genre}" をクリック`)}
             >
               {genre}

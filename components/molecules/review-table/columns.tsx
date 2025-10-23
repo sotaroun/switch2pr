@@ -38,7 +38,7 @@ export const baseColumnsMap: ColumnsMap = {
         renderTruncatedLink(
           row.videoTitle,
           row.url,
-          row.isOfficialLike ? "rgba(255, 240, 246, 0.94)" : "rgba(240, 244, 255, 0.9)"
+          row.isOfficialLike ? "rgba(255, 255, 255, 0.92)" : "rgba(255, 255, 255, 0.85)"
         ),
     },
     {
@@ -48,7 +48,7 @@ export const baseColumnsMap: ColumnsMap = {
         renderTruncatedLink(
           row.channelTitle,
           row.channelUrl,
-          "rgba(255, 236, 238, 0.96)",
+          "rgba(255, 255, 255, 0.85)",
           "200px"
         ),
     },
@@ -57,7 +57,7 @@ export const baseColumnsMap: ColumnsMap = {
       header: "コメント",
       render: (row) => (
         <Text
-          color="rgba(240, 244, 255, 0.95)"
+          color="rgba(255, 255, 255, 0.82)"
           fontSize="sm"
           lineHeight={1.6}
           maxW="560px"
@@ -74,7 +74,7 @@ export const baseColumnsMap: ColumnsMap = {
       key: "author",
       header: "投稿者",
       render: (row) => (
-        <Text color="rgba(235, 244, 255, 0.88)" fontSize="sm">
+        <Text color="rgba(255, 255, 255, 0.75)" fontSize="sm">
           {row.author}
         </Text>
       ),
@@ -83,7 +83,7 @@ export const baseColumnsMap: ColumnsMap = {
       key: "publishedAt",
       header: "公開日",
       render: (row) => (
-        <Text color="rgba(230, 240, 255, 0.88)" fontSize="sm">
+        <Text color="rgba(255, 255, 255, 0.7)" fontSize="sm">
           {formatDate(row.publishedAt)}
         </Text>
       ),
@@ -108,7 +108,7 @@ export const baseColumnsMap: ColumnsMap = {
       key: "comment",
       header: "コメント",
       render: (row) => (
-        <Text color="rgba(255, 255, 255, 1)" fontSize="sm" lineHeight={1.6}>
+        <Text color="rgba(255, 255, 255, 0.85)" fontSize="sm" lineHeight={1.6}>
           {row.comment}
         </Text>
       ),
@@ -119,7 +119,7 @@ export const baseColumnsMap: ColumnsMap = {
       render: (row) => {
         const display = formatDate(row.postedAt);
         return (
-          <Text color="rgba(230, 240, 255, 0.88)" fontSize="sm">
+          <Text color="rgba(255, 255, 255, 0.7)" fontSize="sm">
             {display}
           </Text>
         );
