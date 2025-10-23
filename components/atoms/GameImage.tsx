@@ -69,9 +69,9 @@ export const GameImage: React.FC = () => {
   // 画面で表示させる部分
   if (isLoading) {
     return (
-      <VStack colorPalette="teal">
-        <Spinner color="colorPalette.600" />
-        <Text color="colorPalette.600">Loading...</Text>
+      <VStack>
+        <Spinner color="#a3a3a3" />
+        <Text color="#a3a3a3">Loading...</Text>
       </VStack>
     );
   }
