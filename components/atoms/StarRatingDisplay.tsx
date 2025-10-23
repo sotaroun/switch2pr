@@ -20,13 +20,11 @@ export type RatingStarsProps = {
 };
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
-const snap = (n: number, step: number) => Math.round(n / step) * step;
-
 export const RatingStars = ({
   value,
   defaultValue = 0,
   max = 5,
-  precision = 0.5,
+  precision = 1,
   readOnly = true,
   showValue = false,
   size = "md",
@@ -55,15 +53,12 @@ export const RatingStars = ({
   );
 
   const handleClick = useCallback(
-    (index: number, event: React.MouseEvent<HTMLDivElement>) => {
+    (index: number) => {
       if (readOnly) return;
-      const rect = event.currentTarget.getBoundingClientRect();
-      const ratio = clamp((event.clientX - rect.left) / rect.width, 0, 1);
-      const stepped = snap(ratio, precision);
-      const next = clamp(index - 1 + stepped, 0, max);
-      commit(Number(next.toFixed(2)));
+      const next = clamp(index, 0, max);
+      commit(next);
     },
-    [commit, max, precision, readOnly]
+    [commit, max, readOnly]
   );
 
   const handleKey = useCallback(
@@ -105,7 +100,7 @@ export const RatingStars = ({
             as={readOnly ? "span" : "button"}
             type="button"
             cursor={readOnly ? "default" : "pointer"}
-            onClick={(event) => handleClick(index + 1, event)}
+            onClick={() => handleClick(index + 1)}
             _active={!readOnly ? { transform: "scale(0.98)" } : undefined}
             bg={`linear-gradient(90deg, ${activeColor} ${percent}, ${resolvedIdle} ${percent})`}
             transition="background 0.2s ease"
