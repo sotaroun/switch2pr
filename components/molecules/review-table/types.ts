@@ -3,6 +3,10 @@ import type { ReactNode } from "react";
 export type Source = "youtube" | "oneliner";
 export type ReviewTabKey = Source | "form";
 
+export type YoutubeSortKey = "published_desc" | "like_desc";
+export type OnelinerSortKey = "posted_desc" | "rating_desc" | "helpful_desc";
+export type ReviewTabKey = Source | "form";
+
 export type YoutubeReview = {
   videoId: string;
   videoTitle: string;
@@ -49,5 +53,7 @@ export type ColumnsMap = {
 
 export type SortTab = {
   label: string;
+  value: string;
   isActive?: boolean;
+  onClick?: () => void;
 };
