@@ -61,7 +61,7 @@ export default function GameOverview() {
       </Text>
 
       {hasGenres && (
-        <HStack mt={3} spacing={2} wrap="wrap">
+        <HStack mt={3} gap={2} flexWrap="wrap">
           {genres.map((genre) => (
             <Badge
               key={genre}
