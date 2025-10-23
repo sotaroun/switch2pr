@@ -1,17 +1,7 @@
 "use client";
 
 import { type FormEvent, useCallback, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  Field,
-  Heading,
-  Icon,
-  Input,
-  Stack,
-  Text,
-  Textarea,
-} from "@chakra-ui/react";
+import { Box, Button, Field, Icon, Input, Stack, Text, Textarea } from "@chakra-ui/react";
 import { useParams } from "next/navigation";
 import { FiSend } from "react-icons/fi";
 
@@ -30,7 +20,7 @@ type FormState = {
 
 const initialState: FormState = {
   userName: "",
-  rating: 5,
+  rating: 0,
   comment: "",
 };
 
@@ -192,27 +182,14 @@ export function QuickReviewForm() {
     <Box
       as="section"
       w="full"
-      maxW={{ base: "100%", xl: "360px" }}
-      bg="rgba(10, 24, 60, 0.92)"
-      borderRadius="24px"
-      border="1px solid rgba(94, 126, 255, 0.28)"
-      boxShadow="0 18px 45px rgba(20, 46, 120, 0.35)"
-      backdropFilter="blur(12px)"
-      px={{ base: 4, md: 5 }}
+      bg="rgba(10, 15, 36, 0.92)"
+      borderRadius="20px"
+      border="1px solid rgba(94, 126, 255, 0.18)"
+      boxShadow="0 22px 60px rgba(25, 56, 160, 0.28)"
+      px={{ base: 4, md: 6 }}
       py={{ base: 5, md: 6 }}
     >
-      <Stack spacing={4}>
-        <Heading
-          as="h2"
-          fontSize="lg"
-          fontWeight="semibold"
-          color="rgba(253, 254, 255, 0.95)"
-          letterSpacing="0.01em"
-        >
-          クイックレビュー投稿
-        </Heading>
-
-        <Stack as="form" onSubmit={handleSubmit} spacing={4}>
+      <Stack spacing={4} as="form" onSubmit={handleSubmit}>
             <Field.Root
               invalid={Boolean(errors.userName)}
               disabled={!supabaseConfigured}
@@ -251,12 +228,12 @@ export function QuickReviewForm() {
                   activeColor="#ffe27a"
                   idleColor="rgba(255, 255, 255, 0.18)"
                   onChange={(value) =>
-                    updateField("rating", Math.max(1, Math.min(5, Math.round(value))))
+                    updateField("rating", Math.max(0, Math.min(5, Math.round(value))))
                   }
                   ariaLabel="レビュー評価"
                 />
                 <Text fontSize="sm" color="rgba(210, 220, 255, 0.7)">
-                  評価を選択
+                  {formState.rating > 0 ? "評価が選択されています" : "星をクリックして評価を選択"}
                 </Text>
               </Stack>
               {errors.rating && <Field.ErrorText>{errors.rating}</Field.ErrorText>}
@@ -268,7 +245,7 @@ export function QuickReviewForm() {
               required
               gap={2}
             >
-              <Field.Label color="rgba(253, 254, 255, 0.9)">一言コメント</Field.Label>
+              <Field.Label color="rgba(253, 254, 255, 0.9)">レビュー内容</Field.Label>
               <Textarea
                 value={formState.comment}
                 onChange={(event) => updateField("comment", event.target.value)}
@@ -292,7 +269,7 @@ export function QuickReviewForm() {
               </Text>
             </Field.Root>
 
-            <Button
+        <Button
               type="submit"
               variant="outline"
               borderRadius="999px"
@@ -304,13 +281,12 @@ export function QuickReviewForm() {
               isDisabled={!gameId || !supabaseConfigured}
               leftIcon={<Icon as={FiSend} />}
             >
-              レビューを投稿
-            </Button>
-        </Stack>
+        レビューを投稿
+        </Button>
 
-        <Stack spacing={1}>
+        <Stack spacing={1} pt={2} borderTop="1px solid rgba(94, 126, 255, 0.18)">
           <Text color="rgba(255,255,255,0.7)" fontSize="sm">
-            ※投稿されたレビューは管理者の承認後に表示されます。
+            投稿されたレビューは管理者の承認後に表示されます。
           </Text>
           {!supabaseConfigured && (
             <Text color="rgba(255,200,200,0.85)" fontSize="sm">

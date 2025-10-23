@@ -12,7 +12,8 @@ import { ReviewTableHeader } from "../molecules/review-table/ReviewTableHeader";
 import { baseColumnsMap } from "../molecules/review-table/columns";
 import { sortOptions } from "../molecules/review-table/config";
 import { buildHelpfulStorageKey } from "../molecules/review-table/utils";
-import type { GameReviews, OnelinerReview, Source, YoutubeReview } from "../molecules/review-table/types";
+import type { GameReviews, OnelinerReview, ReviewTabKey, Source, YoutubeReview } from "../molecules/review-table/types";
+import { QuickReviewForm } from "./QuickReviewForm";
 import type { GameDetailResponse } from "@/types/game-detail";
 import {
   ensureAnonReviewSession,
@@ -22,9 +23,10 @@ import {
 
 const HELPFUL_STORAGE_KEY = "switch2pr_helpful_votes";
 
-const tableTitles: Record<Source, string> = {
+const tabTitles: Record<ReviewTabKey, string> = {
   youtube: "YouTube コメント",
   oneliner: "一言コメント",
+  form: "レビュー投稿",
 };
 
 const subtitleTemplate: Record<Source, (total: number) => string> = {
@@ -32,7 +34,7 @@ const subtitleTemplate: Record<Source, (total: number) => string> = {
   oneliner: (total) => `全${total}件の投稿`,
 };
 
-const headerIconMap: Record<Source, ReactNode> = {
+const headerIconMap: Record<ReviewTabKey, ReactNode> = {
   youtube: (
     <YouTubeIcon
       boxSize="2.5rem"
@@ -42,6 +44,7 @@ const headerIconMap: Record<Source, ReactNode> = {
     />
   ),
   oneliner: <BubbleIcon boxSize="2.3rem" color="#57c6ff" />,
+  form: <BubbleIcon boxSize="2.3rem" color="#7ed957" />,
 };
 
 export default function ReviewSwitcherTable() {
@@ -52,7 +55,7 @@ export default function ReviewSwitcherTable() {
   const gameId = typeof rawId === "string" ? rawId : null;
   const supabaseConfigured = isSupabaseConfigured();
 
-  const [src, setSrc] = useState<Source>("youtube");
+  const [tab, setTab] = useState<ReviewTabKey>("youtube");
   const [reviews, setReviews] = useState<GameReviews>({ youtube: [], oneliner: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -151,9 +154,12 @@ export default function ReviewSwitcherTable() {
     [gameId, storageHydrated, supabaseConfigured, votedSet]
   );
 
+  const activeSource: Source = tab === "form" ? "oneliner" : tab;
+  const isFormTab = tab === "form";
+
   const columns = useMemo(() => {
-    const base = baseColumnsMap[src];
-    if (src !== "oneliner") {
+    const base = baseColumnsMap[activeSource];
+    if (activeSource !== "oneliner") {
       return base.map((column) => ({ ...column }));
     }
 
@@ -182,9 +188,9 @@ export default function ReviewSwitcherTable() {
         },
       };
     });
-  }, [gameId, handleHelpfulVote, helpfulOverrides, src, storageHydrated, supabaseConfigured, votedSet]);
+  }, [activeSource, gameId, handleHelpfulVote, helpfulOverrides, storageHydrated, supabaseConfigured, votedSet]);
 
-  const rows = reviews[src];
+  const rows = reviews[activeSource];
   const total = rows.length;
 
   useEffect(() => {
@@ -308,13 +314,94 @@ export default function ReviewSwitcherTable() {
     };
   }, [gameId, supabaseConfigured]);
 
-  const subtitle = subtitleTemplate[src](total);
-  const headerIcon = headerIconMap[src];
-  const currentSortTabs = sortOptions[src];
+  const subtitle = isFormTab
+    ? "投稿されたレビューは管理者の承認後に表示されます。"
+    : subtitleTemplate[activeSource](total);
+  const headerIcon = headerIconMap[tab];
+  const currentSortTabs = isFormTab ? [] : sortOptions[activeSource];
+
+  const tableContent = (
+    <Box borderRadius="xl" overflowX="auto">
+      <Table.Root
+        size="md"
+        variant="simple"
+        sx={{
+          th: {
+            fontSize: "sm",
+            fontWeight: "semibold",
+            textTransform: "none",
+            letterSpacing: "0.02em",
+            color: "#FDFEFF",
+            background:
+              "linear-gradient(135deg, rgba(24, 38, 96, 0.9), rgba(19, 33, 82, 0.9))",
+            borderColor: "rgba(52, 75, 160, 0.75)",
+            textShadow: "0 0 8px rgba(8, 14, 40, 0.6)",
+          },
+          td: {
+            fontSize: "sm",
+            color: "rgba(255,255,255,0.88)",
+            borderColor: "rgba(82, 108, 175, 0.28)",
+            borderBottom: "1px solid rgba(82, 108, 175, 0.28)",
+          },
+          "tbody tr:last-of-type td": {
+            borderBottomWidth: 0,
+          },
+        }}
+      >
+        <Table.Header>
+          <Table.Row>
+            {columns.map((column) => (
+              <Table.ColumnHeader
+                key={String(column.key)}
+                color="rgba(253, 254, 255, 0.96)"
+              >
+                {column.header}
+              </Table.ColumnHeader>
+            ))}
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {loading ? (
+            <Table.Row>
+              <Table.Cell colSpan={columns.length}>
+                <Text color="rgba(255,255,255,0.65)">口コミを読み込み中...</Text>
+              </Table.Cell>
+            </Table.Row>
+          ) : rows.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={columns.length}>
+                <Text color="rgba(255,255,255,0.6)">
+                  このソースの口コミはまだありません。
+                </Text>
+              </Table.Cell>
+            </Table.Row>
+          ) : (
+            rows.map((row, index) => (
+              <Table.Row
+                key={`${activeSource}-${index}`}
+                bg="rgba(255,255,255,0.015)"
+                _hover={{ bg: "rgba(255,255,255,0.05)" }}
+                transition="background 0.2s ease"
+              >
+                {columns.map((column) => (
+                  <Table.Cell key={String(column.key)}>
+                    {column.render
+                      ? column.render(row as never, index)
+                      : (row as Record<string, ReactNode>)[column.key as string] ?? ""}
+                  </Table.Cell>
+                ))}
+              </Table.Row>
+            ))
+          )}
+        </Table.Body>
+      </Table.Root>
+    </Box>
+  );
 
   return (
     <Stack spacing={6} align="center" w="full">
-      <ReviewSourceToggle value={src} onChange={setSrc} />
+      <ReviewSourceToggle value={tab} onChange={setTab} />
 
       <Box
         w="full"
@@ -330,97 +417,18 @@ export default function ReviewSwitcherTable() {
         <Stack spacing={5}>
           <ReviewTableHeader
             icon={headerIcon}
-            title={tableTitles[src]}
+            title={tabTitles[tab]}
             subtitle={subtitle}
             tabs={currentSortTabs}
           />
 
-          {error && (
+          {!isFormTab && error && (
             <Text color="rgba(255, 102, 132, 0.85)" fontSize="sm">
               {error}
             </Text>
           )}
 
-          <Box borderRadius="xl" overflowX="auto">
-            <Table.Root
-              size="md"
-              variant="simple"
-              sx={{
-                th: {
-                  fontSize: "sm",
-                  fontWeight: "semibold",
-                  textTransform: "none",
-                  letterSpacing: "0.02em",
-                  color: "#FDFEFF",
-                  background:
-                    "linear-gradient(135deg, rgba(24, 38, 96, 0.9), rgba(19, 33, 82, 0.9))",
-                  borderColor: "rgba(52, 75, 160, 0.75)",
-                  textShadow: "0 0 8px rgba(8, 14, 40, 0.6)",
-                },
-                td: {
-                  fontSize: "sm",
-                  color: "rgba(255,255,255,0.88)",
-                  borderColor: "rgba(82, 108, 175, 0.28)",
-                  borderBottom: "1px solid rgba(82, 108, 175, 0.28)",
-                },
-                "tbody tr:last-of-type td": {
-                  borderBottomWidth: 0,
-                },
-              }}
-            >
-              <Table.Header>
-                <Table.Row>
-                  {columns.map((column) => (
-                    <Table.ColumnHeader
-                      key={String(column.key)}
-                      color="rgba(253, 254, 255, 0.96)"
-                    >
-                      {column.header}
-                    </Table.ColumnHeader>
-                  ))}
-                </Table.Row>
-              </Table.Header>
-
-              <Table.Body>
-                {loading ? (
-                  <Table.Row>
-                    <Table.Cell colSpan={columns.length}>
-                      <Text color="rgba(255,255,255,0.65)">
-                        口コミを読み込み中...
-                      </Text>
-                    </Table.Cell>
-                  </Table.Row>
-                ) : rows.length === 0 ? (
-                  <Table.Row>
-                    <Table.Cell colSpan={columns.length}>
-                      <Text color="rgba(255,255,255,0.6)">
-                        このソースの口コミはまだありません。
-                      </Text>
-                    </Table.Cell>
-                  </Table.Row>
-                ) : (
-                  rows.map((row, index) => (
-                    <Table.Row
-                      key={`${src}-${index}`}
-                      bg="rgba(255,255,255,0.015)"
-                      _hover={{ bg: "rgba(255,255,255,0.05)" }}
-                      transition="background 0.2s ease"
-                    >
-                      {columns.map((column) => (
-                        <Table.Cell key={String(column.key)}>
-                          {column.render
-                            ? column.render(row as never, index)
-                            : (row as Record<string, ReactNode>)[
-                                column.key as string
-                              ] ?? ""}
-                        </Table.Cell>
-                      ))}
-                    </Table.Row>
-                  ))
-                )}
-              </Table.Body>
-            </Table.Root>
-          </Box>
+          {isFormTab ? <QuickReviewForm /> : tableContent}
         </Stack>
       </Box>
     </Stack>

@@ -1,11 +1,12 @@
-import type { Source, SortTab } from "./types";
+import type { ReviewTabKey, Source, SortTab } from "./types";
 
-export const sourceLabels: Record<Source, string> = {
+export const tabLabels: Record<ReviewTabKey, string> = {
   youtube: "YouTube口コミ",
   oneliner: "一言コメント",
+  form: "レビュー投稿",
 };
 
-export const sourceButtonThemes: Record<Source, {
+export const tabButtonThemes: Record<ReviewTabKey, {
   idleBg: string;
   idleColor: string;
   hoverBg: string;
@@ -32,9 +33,18 @@ export const sourceButtonThemes: Record<Source, {
     activeColor: "white",
     shadow: "0 6px 24px rgba(41, 146, 255, 0.38)",
   },
+  form: {
+    idleBg: "rgba(137, 212, 116, 0.18)",
+    idleColor: "rgba(255,255,255,0.82)",
+    hoverBg: "#6fd26f",
+    hoverColor: "white",
+    activeBg: "#57c057",
+    activeColor: "white",
+    shadow: "0 6px 24px rgba(87, 192, 87, 0.35)",
+  },
 };
 
-export const sourceOrder: Source[] = ["youtube", "oneliner"];
+export const tabOrder: ReviewTabKey[] = ["youtube", "oneliner", "form"];
 
 export const sortOptions: Record<Source, SortTab[]> = {
   youtube: [
