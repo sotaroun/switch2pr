@@ -182,12 +182,18 @@ export function QuickReviewForm() {
     <Box
       as="section"
       w="full"
-      bg="rgba(10, 15, 36, 0.92)"
+      bg="rgba(32, 32, 32, 0.95)"
       borderRadius="20px"
-      border="1px solid rgba(94, 126, 255, 0.18)"
-      boxShadow="0 22px 60px rgba(25, 56, 160, 0.28)"
+      border="1px solid rgba(255, 255, 255, 0.08)"
+      boxShadow="0 18px 50px rgba(0, 0, 0, 0.45)"
       px={{ base: 4, md: 6 }}
       py={{ base: 5, md: 6 }}
+      transition="background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease"
+      _hover={{
+        bg: "rgba(42, 42, 42, 0.95)",
+        borderColor: "rgba(255, 255, 255, 0.12)",
+        boxShadow: "0 22px 60px rgba(0, 0, 0, 0.5)",
+      }}
     >
       <Stack spacing={4} as="form" onSubmit={handleSubmit}>
             <Field.Root
@@ -196,7 +202,7 @@ export function QuickReviewForm() {
               required
               gap={2}
             >
-              <Field.Label color="rgba(253, 254, 255, 0.9)">ユーザー名</Field.Label>
+              <Field.Label color="rgba(255, 255, 255, 0.85)">ユーザー名</Field.Label>
               <Input
                 value={formState.userName}
                 onChange={(event) => updateField("userName", event.target.value)}
@@ -204,10 +210,19 @@ export function QuickReviewForm() {
                 size="md"
                 disabled={!supabaseConfigured}
                 borderRadius="999px"
-                bg="rgba(12, 28, 68, 0.9)"
-                border="1px solid rgba(98, 130, 255, 0.35)"
-                _placeholder={{ color: "rgba(200, 212, 255, 0.55)" }}
-                color="rgba(253, 254, 255, 0.92)"
+                bg="rgba(255, 255, 255, 0.05)"
+                border="1px solid rgba(255, 255, 255, 0.12)"
+                _placeholder={{ color: "rgba(255, 255, 255, 0.4)" }}
+                color="rgba(255, 255, 255, 0.9)"
+                _hover={{
+                  borderColor: "rgba(255, 255, 255, 0.2)",
+                  bg: "rgba(255, 255, 255, 0.08)",
+                }}
+                _focusVisible={{
+                  borderColor: "rgba(255, 255, 255, 0.35)",
+                  boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.35)",
+                  bg: "rgba(255, 255, 255, 0.1)",
+                }}
               />
               {errors.userName && <Field.ErrorText>{errors.userName}</Field.ErrorText>}
             </Field.Root>
@@ -218,21 +233,21 @@ export function QuickReviewForm() {
               required
               gap={2}
             >
-              <Field.Label color="rgba(253, 254, 255, 0.9)">評価</Field.Label>
+              <Field.Label color="rgba(255, 255, 255, 0.85)">評価</Field.Label>
               <Stack direction="row" align="center" spacing={3}>
                 <RatingStars
                   value={formState.rating}
                   precision={1}
                   readOnly={!supabaseConfigured}
                   size="md"
-                  activeColor="#ffe27a"
+                  activeColor="#f5c451"
                   idleColor="rgba(255, 255, 255, 0.18)"
                   onChange={(value) =>
                     updateField("rating", Math.max(0, Math.min(5, Math.round(value))))
                   }
                   ariaLabel="レビュー評価"
                 />
-                <Text fontSize="sm" color="rgba(210, 220, 255, 0.7)">
+                <Text fontSize="sm" color="rgba(255, 255, 255, 0.65)">
                   {formState.rating > 0 ? "評価が選択されています" : "星をクリックして評価を選択"}
                 </Text>
               </Stack>
@@ -245,7 +260,7 @@ export function QuickReviewForm() {
               required
               gap={2}
             >
-              <Field.Label color="rgba(253, 254, 255, 0.9)">レビュー内容</Field.Label>
+              <Field.Label color="rgba(255, 255, 255, 0.85)">レビュー内容</Field.Label>
               <Textarea
                 value={formState.comment}
                 onChange={(event) => updateField("comment", event.target.value)}
@@ -254,14 +269,23 @@ export function QuickReviewForm() {
                 rows={4}
                 disabled={!supabaseConfigured}
                 borderRadius="20px"
-                bg="rgba(12, 28, 68, 0.9)"
-                border="1px solid rgba(98, 130, 255, 0.35)"
-                _placeholder={{ color: "rgba(200, 212, 255, 0.55)" }}
-                color="rgba(253, 254, 255, 0.92)"
+                bg="rgba(255, 255, 255, 0.05)"
+                border="1px solid rgba(255, 255, 255, 0.12)"
+                _placeholder={{ color: "rgba(255, 255, 255, 0.4)" }}
+                color="rgba(255, 255, 255, 0.9)"
+                _hover={{
+                  borderColor: "rgba(255, 255, 255, 0.2)",
+                  bg: "rgba(255, 255, 255, 0.08)",
+                }}
+                _focusVisible={{
+                  borderColor: "rgba(255, 255, 255, 0.35)",
+                  boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.35)",
+                  bg: "rgba(255, 255, 255, 0.1)",
+                }}
               />
               {errors.comment && <Field.ErrorText>{errors.comment}</Field.ErrorText>}
               <Text
-                color="rgba(255,255,255,0.65)"
+                color="rgba(255, 255, 255, 0.55)"
                 fontSize="sm"
                 textAlign="right"
               >
@@ -271,12 +295,15 @@ export function QuickReviewForm() {
 
         <Button
               type="submit"
-              variant="outline"
               borderRadius="999px"
-              border="1px solid rgba(120, 150, 255, 0.6)"
-              color="rgba(222, 232, 255, 0.92)"
-              _hover={{ bg: "rgba(80, 120, 255, 0.18)" }}
-              _active={{ bg: "rgba(80, 120, 255, 0.28)" }}
+              border="1px solid rgba(255, 255, 255, 0.24)"
+              color="rgba(255, 255, 255, 0.88)"
+              bg="rgba(255, 255, 255, 0.04)"
+              _hover={{
+                bg: "rgba(255, 255, 255, 0.12)",
+                color: "rgba(255, 255, 255, 0.98)",
+              }}
+              _active={{ bg: "rgba(255, 255, 255, 0.16)" }}
               isLoading={submitting}
               isDisabled={!gameId || !supabaseConfigured}
               leftIcon={<Icon as={FiSend} />}
@@ -284,7 +311,7 @@ export function QuickReviewForm() {
         レビューを投稿
         </Button>
 
-        <Stack spacing={1} pt={2} borderTop="1px solid rgba(94, 126, 255, 0.18)">
+        <Stack spacing={1} pt={2} borderTop="1px solid rgba(255, 255, 255, 0.08)">
           <Text color="rgba(255,255,255,0.7)" fontSize="sm">
             投稿されたレビューは管理者の承認後に表示されます。
           </Text>
@@ -297,10 +324,10 @@ export function QuickReviewForm() {
             <Text
               color={
                 feedback.status === "success"
-                  ? "rgba(138, 255, 191, 0.9)"
+                  ? "rgba(190, 255, 214, 0.9)"
                   : feedback.status === "error"
                     ? "rgba(255, 180, 180, 0.95)"
-                    : "rgba(160, 200, 255, 0.9)"
+                    : "rgba(220, 220, 255, 0.9)"
               }
               fontSize="sm"
             >

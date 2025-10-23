@@ -9,7 +9,18 @@ import GameOverview from "@/components/atoms/GameOverview";
 // 既存のatomsコンポーネントを組み合わせて構成
 export default function GameHeader() {
   return (
-    <Box p={6} borderWidth="1px" borderRadius="xl">
+    <Box
+      p={6}
+      borderWidth="1px"
+      borderRadius="xl"
+      borderColor="rgba(255, 255, 255, 0.08)"
+      bg="rgba(26, 26, 26, 0.95)"
+      transition="background 0.2s ease, border-color 0.2s ease"
+      _hover={{
+        bg: "rgba(40, 40, 40, 0.95)",
+        borderColor: "rgba(255, 255, 255, 0.12)",
+      }}
+    >
       <Flex gap={6} align="flex-start">
         {/* ゲーム画像部分 */}
         <Box flexShrink={0}>

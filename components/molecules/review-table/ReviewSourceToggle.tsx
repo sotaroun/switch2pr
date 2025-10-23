@@ -37,13 +37,13 @@ export const ReviewSourceToggle = ({ value, onChange }: ReviewSourceToggleProps)
   <Box
     borderRadius="full"
     width="fit-content"
-    bgGradient="linear(135deg, rgba(56, 198, 255, 0.45), rgba(32, 128, 255, 0.15))"
-    boxShadow="0 12px 35px rgba(32, 178, 255, 0.28)"
+    bg="rgba(255, 255, 255, 0.06)"
+    boxShadow="0 12px 32px rgba(0, 0, 0, 0.4)"
     p="1"
   >
     <HStack
       spacing={2}
-      bg="rgba(10, 16, 40, 0.92)"
+      bg="rgba(32, 32, 32, 0.95)"
       borderRadius="full"
       px={2.5}
       py={1.5}
