@@ -1,11 +1,22 @@
 "use client"
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Box, Container, Stack, Heading } from "@chakra-ui/react";
 import SearchWithResults from '../components/organisms/SearchSection/SearchWithResults';
+import HorizontalGameList from '../components/organisms/GameSection/HorizontalGameList';
+import { Game } from '../types/game';
 
+/**
+ * トップページ
+ * 検索機能と横スクロールゲームリストを統合
+ */
 const HomePage: React.FC = () => {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   // ダミーゲームデータ（10件）
-  const dummyGames = [
+  const dummyGames: Game[] = [
     { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },
     { id: '2', title: 'スプラトゥーン3', categories: ['シューティング'] },
     { id: '3', title: 'マリオカート8 デラックス', categories: ['スポーツ'] },
@@ -18,15 +29,72 @@ const HomePage: React.FC = () => {
     { id: '10', title: 'カービィのグルメフェス', categories: ['アクション'] },
   ];
 
+  /**
+   * ゲームクリック時の処理
+   */
+  const handleGameClick = useCallback((gameId: string) => {
+    router.push(`/game/${gameId}`);
+  }, [router]);
+
+  /**
+   * 再試行処理
+   */
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setIsLoading(true);
+    // シミュレーション用の遅延
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
   return (
     <Box minH="100vh" bg="gray.900" color="white">
       <Container maxW="90%" py={8}>
-        <Stack direction="column" gap={8}>
-          <Heading as="h1" fontSize={{ base: "3xl", md: "5xl" }} textAlign="center" color="white">
+        <Stack direction="column" gap={12}>
+          {/* ページタイトル */}
+          <Heading 
+            as="h1" 
+            fontSize={{ base: "3xl", md: "5xl" }} 
+            textAlign="center" 
+            color="white"
+            fontWeight="bold"
+          >
             GameReview Hub
           </Heading>
-          
+
+          {/* 検索セクション */}
           <SearchWithResults games={dummyGames} />
+
+          {/* 新作ゲームセクション */}
+          <HorizontalGameList
+            title="新作ゲーム"
+            games={dummyGames}
+            onGameClick={handleGameClick}
+            isLoading={isLoading}
+            error={error}
+            onRetry={handleRetry}
+          />
+
+          {/* 人気ゲームセクション */}
+          <HorizontalGameList
+            title="人気ゲーム"
+            games={[...dummyGames].reverse()}
+            onGameClick={handleGameClick}
+            isLoading={isLoading}
+            error={error}
+            onRetry={handleRetry}
+          />
+
+          {/* おすすめゲームセクション */}
+          <HorizontalGameList
+            title="おすすめゲーム"
+            games={dummyGames.slice(0, 5)}
+            onGameClick={handleGameClick}
+            isLoading={isLoading}
+            error={error}
+            onRetry={handleRetry}
+          />
         </Stack>
       </Container>
     </Box>
