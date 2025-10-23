@@ -20,7 +20,7 @@ type FormState = {
 
 const initialState: FormState = {
   userName: "",
-  rating: 5,
+  rating: 0,
   comment: "",
 };
 
@@ -228,12 +228,12 @@ export function QuickReviewForm() {
                   activeColor="#ffe27a"
                   idleColor="rgba(255, 255, 255, 0.18)"
                   onChange={(value) =>
-                    updateField("rating", Math.max(1, Math.min(5, Math.round(value))))
+                    updateField("rating", Math.max(0, Math.min(5, Math.round(value))))
                   }
                   ariaLabel="レビュー評価"
                 />
                 <Text fontSize="sm" color="rgba(210, 220, 255, 0.7)">
-                  評価を選択
+                  {formState.rating > 0 ? "評価が選択されています" : "星をクリックして評価を選択"}
                 </Text>
               </Stack>
               {errors.rating && <Field.ErrorText>{errors.rating}</Field.ErrorText>}
