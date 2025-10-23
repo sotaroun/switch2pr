@@ -14,3 +14,9 @@ export type GameOverviewMock = {
   summaryEn?: string | null;
   genres?: string[];
 };
+
+export type GameOverviewData = {
+  name: string;
+  summary: string;
+  genres: string[];
+};
