@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { Box, Text } from "@chakra-ui/react";
-import { SearchResult } from '../../../types/game';
+import { SearchResult } from "@/types/game";
 
 interface SearchResultsProps {
   /** 検索結果一覧 */

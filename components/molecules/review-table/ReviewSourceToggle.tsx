@@ -1,6 +1,6 @@
 import { Box, Button, HStack } from "@chakra-ui/react";
-import { BubbleIcon } from "../../atoms/icons/BubbleIcon";
-import { YouTubeIcon } from "../../atoms/icons/YouTubeIcon";
+import { BubbleIcon } from "@/components/atoms/icons/BubbleIcon";
+import { YouTubeIcon } from "@/components/atoms/icons/YouTubeIcon";
 import { tabButtonThemes, tabLabels, tabOrder } from "./config";
 import type { ReviewTabKey } from "./types";
 

@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Box, Stack, Text, Flex, Badge } from "@chakra-ui/react";
-import { CATEGORY_GRADIENTS, HORIZONTAL_SCROLL_UI } from '../../../types/horizontalScroll';
+import { CATEGORY_GRADIENTS } from "./constants";
 
 interface GameCardProps {
   title: string;
@@ -44,14 +44,10 @@ const GameCard: React.FC<GameCardProps> = memo(({
 }) => {
   // カテゴリに応じた背景グラデーション（コンパクトモード用）
   const getCategoryGradient = (cats: string[]): string => {
-    const gradientMap: Record<string, string> = {
-      'アクション': 'linear(to-br, red.600, red.900)',
-      'RPG': 'linear(to-br, purple.600, purple.900)',
-      'シューティング': 'linear(to-br, blue.600, blue.900)',
-      'スポーツ': 'linear(to-br, green.600, green.900)',
-      'パズル': 'linear(to-br, yellow.600, yellow.900)'
-    };
-    return gradientMap[cats[0]] || 'linear(to-br, gray.600, gray.900)';
+    if (cats.length === 0) {
+      return "linear(to-br, gray.600, gray.900)";
+    }
+    return CATEGORY_GRADIENTS[cats[0]] ?? "linear(to-br, gray.600, gray.900)";
   };
 
   // コンパクトモード（横スクロール用）

@@ -2,9 +2,9 @@
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Container, Stack, Heading } from "@chakra-ui/react";
-import SearchWithResults from '../components/organisms/SearchSection/SearchWithResults';
-import HorizontalGameList from '../components/organisms/GameSection/HorizontalGameList';
-import { Game } from '../types/game';
+import SearchWithResults from "@/components/organisms/search/SearchWithResults";
+import HorizontalGameList from "@/components/organisms/game/HorizontalGameList";
+import { Game } from "@/types/game";
 
 /**
  * トップページ

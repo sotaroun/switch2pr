@@ -1,13 +1,13 @@
 "use client"
 import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import CategoryTemplate from '../../components/templates/CategoryPage/CategoryTemplate';
-import OverlayComments from '../../components/organisms/CommentSection/OverlayComments';
-import PageLoader from '../../components/organisms/Loading/PageLoader';
-import { useOverlayComments } from '../../hooks/useOverlayComments';
-import { usePageLoad } from '../../hooks/usePageLoad';
-import { fetchOverlayCommentsAPI } from '../../lib/overlayComments';
-import { Game, GameCategory, ALL_GAME_CATEGORIES } from '../../types/game';
+import CategoryTemplate from "@/components/templates/CategoryPage/CategoryTemplate";
+import OverlayComments from "@/components/organisms/CommentSection/OverlayComments";
+import PageLoader from "@/components/organisms/Loading/PageLoader";
+import { useOverlayComments } from "@/hooks/comments/useOverlayComments";
+import { usePageLoad } from "@/hooks/usePageLoad";
+import { fetchOverlayCommentsAPI } from "@/lib/overlayComments";
+import { Game, GameCategory, ALL_GAME_CATEGORIES } from "@/types/game";
 
 const CategoryPage: React.FC = () => {
   const router = useRouter();
@@ -18,16 +18,16 @@ const CategoryPage: React.FC = () => {
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);
 
   // オーバーレイコメント機能
-const fetchComments = useCallback((gameId: string) => {
-  return fetchOverlayCommentsAPI(gameId);
-}, []);
+  const fetchComments = useCallback((gameId: string) => {
+    return fetchOverlayCommentsAPI(gameId);
+  }, []);
 
-const { comments, isLoading, startHover, endHover } = useOverlayComments({
-  gameId: hoveredGameId,
-  fetchComments, 
-  maxDisplay: 20,
-  totalLanes: 20
-});
+  const { comments, isLoading, startHover, endHover } = useOverlayComments({
+    gameId: hoveredGameId,
+    fetchComments,
+    maxDisplay: 20,
+    totalLanes: 20,
+  });
 
   const allGames: Game[] = useMemo(() => [
     { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },

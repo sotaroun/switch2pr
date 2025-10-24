@@ -1,4 +1,4 @@
-import { OverlayComment } from '../types/overlayComment';
+import { OverlayComment } from "@/types/overlayComment";
 
 /**
  * ダミーのオーバーレイコメントデータ

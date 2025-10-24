@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { buildCoverUrl, buildScreenshotUrl, igdbRequest } from "@/lib/igdb/client";
+import { buildCoverUrl, buildScreenshotUrl, igdbRequest } from "@/lib/api/igdb";
 import type { GameDetailResponse } from "@/types/game-detail";
 
 const GAME_FIELDS = [

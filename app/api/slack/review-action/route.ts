@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { sendReviewDecisionNotification } from "@/lib/slack/notifications";
-import { invokeReviewApprovalFunction } from "@/lib/supabase/review-approval";
+import { sendReviewDecisionNotification } from "@/lib/api/slack";
+import { invokeReviewApprovalFunction } from "@/lib/api/supabase";
 
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
 

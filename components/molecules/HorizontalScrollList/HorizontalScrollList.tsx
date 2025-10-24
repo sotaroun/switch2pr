@@ -1,11 +1,11 @@
 import React, { memo, useRef, useEffect, useMemo } from 'react';
 import { Box } from "@chakra-ui/react";
-import { Game } from '../../../types/game';
-import GameCard from '../GameCard/GameCard';
-import CardSkeleton from '../../../atoms/Loading/CardSkeleton';
-import ScrollButton from '../../../atoms/Button/ScrollButton';
-import { useHorizontalScroll } from '../../../hooks/useHorizontalScroll';
-import { DEFAULT_SCROLL_CONFIG, HORIZONTAL_SCROLL_UI } from '../../../types/horizontalScroll';
+import { Game } from "@/types/game";
+import GameCard from "../GameCard/GameCard";
+import CardSkeleton from "@/components/atoms/loading/CardSkeleton";
+import ScrollButton from "@/components/atoms/buttons/ScrollButton";
+import { useHorizontalScroll } from "@/hooks/ui/useHorizontalScroll";
+import { DEFAULT_SCROLL_CONFIG, HORIZONTAL_SCROLL_UI } from "./config";
 
 interface HorizontalScrollListProps {
   games: Game[];

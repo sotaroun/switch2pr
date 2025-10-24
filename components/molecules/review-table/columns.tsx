@@ -1,6 +1,6 @@
 import { Box, Text } from "@chakra-ui/react";
-import { StarRatingDisplay } from "../../atoms/StarRatingDisplay";
-import { StatusBadge } from "../../atoms/StatusBadge";
+import { StarRatingDisplay } from "@/components/atoms/StarRatingDisplay";
+import { StatusBadge } from "@/components/atoms/StatusBadge";
 import type { ColumnsMap } from "./types";
 import { formatDate } from "./utils";
 
