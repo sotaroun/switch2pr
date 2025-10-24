@@ -42,11 +42,12 @@ export const ReviewTableHeader = ({ icon, title, subtitle, tabs, ...props }: Rev
           borderColor="rgba(255, 255, 255, 0.16)"
           bg={tab.isActive ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.04)"}
           color={tab.isActive ? "rgba(255, 255, 255, 0.95)" : "rgba(255,255,255,0.7)"}
+          onClick={tab.onClick}
           _hover={{
             bg: "rgba(255, 255, 255, 0.12)",
             color: "rgba(255, 255, 255, 0.95)",
           }}
-          cursor="default"
+          cursor={tab.onClick ? "pointer" : "default"}
           fontWeight="semibold"
         >
           {tab.label}

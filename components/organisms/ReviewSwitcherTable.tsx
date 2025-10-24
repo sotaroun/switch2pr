@@ -12,7 +12,15 @@ import { ReviewTableHeader } from "../molecules/review-table/ReviewTableHeader";
 import { baseColumnsMap } from "../molecules/review-table/columns";
 import { sortOptions } from "../molecules/review-table/config";
 import { buildHelpfulStorageKey } from "../molecules/review-table/utils";
-import type { GameReviews, OnelinerReview, ReviewTabKey, Source, YoutubeReview } from "../molecules/review-table/types";
+import type {
+  GameReviews,
+  OnelinerReview,
+  OnelinerSortKey,
+  ReviewTabKey,
+  Source,
+  YoutubeReview,
+  YoutubeSortKey,
+} from "../molecules/review-table/types";
 import { QuickReviewForm } from "./QuickReviewForm";
 import type { GameDetailResponse } from "@/types/game-detail";
 import {
@@ -57,6 +65,13 @@ export default function ReviewSwitcherTable() {
 
   const [tab, setTab] = useState<ReviewTabKey>("youtube");
   const [reviews, setReviews] = useState<GameReviews>({ youtube: [], oneliner: [] });
+  const [sortKeys, setSortKeys] = useState<{
+    youtube: YoutubeSortKey;
+    oneliner: OnelinerSortKey;
+  }>({
+    youtube: "published_desc",
+    oneliner: "posted_desc",
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [votedKeys, setVotedKeys] = useState<string[]>([]);
@@ -318,7 +333,57 @@ export default function ReviewSwitcherTable() {
     ? "投稿されたレビューは管理者の承認後に表示されます。"
     : subtitleTemplate[activeSource](total);
   const headerIcon = headerIconMap[tab];
-  const currentSortTabs = isFormTab ? [] : sortOptions[activeSource];
+  const currentSortTabs = useMemo(() => {
+    if (isFormTab) {
+      return [];
+    }
+    if (activeSource === "youtube") {
+      return sortOptions.youtube.map((option) => ({
+        label: option.label,
+        isActive: option.value === sortKeys.youtube,
+        onClick: () => {
+          setSortKeys((prev) => ({ ...prev, youtube: option.value }));
+        },
+      }));
+    }
+    return sortOptions.oneliner.map((option) => ({
+      label: option.label,
+      isActive: option.value === sortKeys.oneliner,
+      onClick: () => {
+        setSortKeys((prev) => ({ ...prev, oneliner: option.value }));
+      },
+    }));
+  }, [activeSource, isFormTab, sortKeys.oneliner, sortKeys.youtube]);
+
+  const sortedRows = useMemo(() => {
+    if (isFormTab) {
+      return [] as typeof rows;
+    }
+    if (activeSource === "youtube") {
+      const base = [...(rows as YoutubeReview[])];
+      if (sortKeys.youtube === "like_desc") {
+        base.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
+      } else {
+        base.sort(
+          (a, b) =>
+            new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+        );
+      }
+      return base;
+    }
+    const base = [...(rows as OnelinerReview[])];
+    if (sortKeys.oneliner === "rating_desc") {
+      base.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    } else if (sortKeys.oneliner === "helpful_desc") {
+      base.sort((a, b) => (b.helpful ?? 0) - (a.helpful ?? 0));
+    } else {
+      base.sort(
+        (a, b) =>
+          new Date(b.postedAt ?? 0).getTime() - new Date(a.postedAt ?? 0).getTime()
+      );
+    }
+    return base;
+  }, [activeSource, isFormTab, rows, sortKeys.oneliner, sortKeys.youtube]);
 
   const tableContent = (
     <Box borderRadius="xl" overflowX="auto" border="1px solid rgba(255, 255, 255, 0.08)">
@@ -367,7 +432,7 @@ export default function ReviewSwitcherTable() {
                 <Text color="rgba(255,255,255,0.65)">口コミを読み込み中...</Text>
               </Table.Cell>
             </Table.Row>
-          ) : rows.length === 0 ? (
+          ) : sortedRows.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={columns.length}>
                 <Text color="rgba(255,255,255,0.6)">
@@ -376,7 +441,7 @@ export default function ReviewSwitcherTable() {
               </Table.Cell>
             </Table.Row>
           ) : (
-            rows.map((row, index) => (
+            sortedRows.map((row, index) => (
               <Table.Row
                 key={`${activeSource}-${index}`}
                 bg="rgba(255, 255, 255, 0.02)"
