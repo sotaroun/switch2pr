@@ -21,7 +21,6 @@ export async function fetchOverlayCommentsAPI(gameId: string): Promise<OverlayCo
 
     const comments = (await response.json()) as OverlayComment[];
     const result = comments.length > 0 ? comments : FALLBACK_COMMENTS;
-    console.log("[overlay] fetch comments", gameId, result.length);
     return result;
   } catch (error) {
     console.error("Failed to fetch overlay comments", error);

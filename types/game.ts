@@ -42,6 +42,14 @@ export interface Game {
   iconUrl?: string;
   /** 概要文（オプション） */
   summary?: string;
+  /** トップページに表示するか */
+  visibleOnHome?: boolean;
+  /** カテゴリページに表示するか */
+  visibleOnCategory?: boolean;
+  /** 表示名称の上書き */
+  displayName?: string | null;
+  /** 並び順 */
+  sortOrder?: number | null;
 }
 
 /**

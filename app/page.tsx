@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Container, Stack, Heading } from "@chakra-ui/react";
 import SearchWithResults from "@/components/organisms/search/SearchWithResults";
@@ -35,6 +35,11 @@ const HomePage: React.FC = () => {
   const commentsCacheRef = useRef<Record<string, OverlayComment[]>>({});
   const [floatingComments, setFloatingComments] = useState<FloatingComment[]>([]);
   const scheduledTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
+
+  const homeGames = useMemo(() => {
+    const filtered = games.filter((game) => game.visibleOnHome !== false);
+    return filtered.length > 0 ? filtered : games;
+  }, [games]);
 
   const fetchGames = useCallback(async (signal?: AbortSignal) => {
     setIsGamesLoading(true);
@@ -137,7 +142,6 @@ const HomePage: React.FC = () => {
   const scheduleComments = useCallback((comments: OverlayComment[]) => {
     clearScheduledComments();
     if (comments.length === 0) {
-      console.log("[overlay] コメントが存在しません");
       return;
     }
 
@@ -219,12 +223,12 @@ const HomePage: React.FC = () => {
           </Heading>
 
           {/* 検索セクション */}
-          <SearchWithResults games={games} />
+          <SearchWithResults games={homeGames} />
 
           {/* 新作ゲームセクション */}
           <HorizontalGameList
             title="新作ゲーム"
-            games={games}
+            games={homeGames}
             onGameClick={handleGameClick}
             onGameHover={(gameId) => {
               setHoveredGameId((prev) => (prev === gameId ? prev : gameId));
@@ -238,7 +242,7 @@ const HomePage: React.FC = () => {
           {/* 人気ゲームセクション */}
           <HorizontalGameList
             title="人気ゲーム"
-            games={[...games].reverse()}
+            games={[...homeGames].reverse()}
             onGameClick={handleGameClick}
             onGameHover={(gameId) => {
               setHoveredGameId((prev) => (prev === gameId ? prev : gameId));
@@ -252,7 +256,7 @@ const HomePage: React.FC = () => {
           {/* おすすめゲームセクション */}
           <HorizontalGameList
             title="おすすめゲーム"
-            games={games.slice(0, 5)}
+            games={homeGames.slice(0, 5)}
             onGameClick={handleGameClick}
             onGameHover={(gameId) => {
               setHoveredGameId((prev) => (prev === gameId ? prev : gameId));

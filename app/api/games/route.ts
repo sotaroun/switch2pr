@@ -75,48 +75,74 @@ function mapGenresToCategories(genres: Array<{ name?: string | null }> | null | 
 
 export async function GET() {
   try {
-    let distinctIds: number[] = [];
+    const supabase = getSupabaseServiceRoleClient();
 
-    try {
-      const supabase = getSupabaseServiceRoleClient();
-      const { data: gameIdRows, error: supabaseError } = await supabase
-        .from("oneliner_reviews")
-        .select("game_id")
-        .eq("status", "approved");
+    const { data: featuredRows, error: featuredError } = await supabase
+      .from("featured_games")
+      .select("igdb_id, display_name, visible_on_home, visible_on_category, sort_order")
+      .order("sort_order", { ascending: true, nullsFirst: false });
 
-      if (supabaseError) {
-        console.warn("Failed to fetch game ids from Supabase", supabaseError);
+    let targetIds: number[] = [];
+    const featuredMap = new Map<
+      number,
+      {
+        display_name?: string | null;
+        visible_on_home?: boolean | null;
+        visible_on_category?: boolean | null;
+        sort_order?: number | null;
       }
+    >();
 
-      distinctIds = Array.from(
-        new Set(
-          (gameIdRows ?? [])
-            .map((row) => Number(row.game_id))
-            .filter((value) => Number.isFinite(value) && value > 0)
-        )
-      );
-    } catch (supabaseError) {
-      console.warn("Supabase is not configured. Falling back to popular IGDB games.", supabaseError);
+    if (!featuredError && featuredRows && featuredRows.length > 0) {
+      targetIds = featuredRows
+        .map((row) => Number(row.igdb_id))
+        .filter((value) => Number.isFinite(value) && value > 0);
+
+      featuredRows.forEach((row) => {
+        featuredMap.set(Number(row.igdb_id), {
+          display_name: row.display_name,
+          visible_on_home: row.visible_on_home,
+          visible_on_category: row.visible_on_category,
+          sort_order: row.sort_order,
+        });
+      });
     }
 
-    const igdbQuery =
-      distinctIds.length > 0
-        ? `
-            fields ${GAME_FIELDS.join(", ")};
-            where id = (${distinctIds.join(",")});
-            limit ${distinctIds.length};
-          `
-        : POPULAR_GAMES_QUERY;
+    const useFeatured = targetIds.length > 0;
+
+    const igdbQuery = useFeatured
+      ? `
+          fields ${GAME_FIELDS.join(", ")};
+          where id = (${targetIds.join(",")});
+          limit ${targetIds.length};
+        `
+      : POPULAR_GAMES_QUERY;
 
     const response = await igdbRequest<RawGame[]>("games", igdbQuery);
 
-    const games: Game[] = response.map((game) => ({
-      id: String(game.id),
-      title: game.name,
-      categories: mapGenresToCategories(game.genres ?? null),
-      iconUrl: buildCoverUrl(game.cover?.image_id ?? undefined),
-      summary: game.summary ?? undefined,
-    }));
+    const games: Game[] = response
+      .map((game) => {
+        const config = featuredMap.get(game.id);
+        return {
+          id: String(game.id),
+          title: config?.display_name ?? game.name,
+          categories: mapGenresToCategories(game.genres ?? null),
+          iconUrl: buildCoverUrl(game.cover?.image_id ?? undefined),
+          summary: game.summary ?? undefined,
+          visibleOnHome: config?.visible_on_home ?? !useFeatured,
+          visibleOnCategory: config?.visible_on_category ?? !useFeatured,
+          displayName: config?.display_name ?? null,
+          sortOrder: config?.sort_order ?? null,
+        } satisfies Game;
+      })
+      .sort((a, b) => {
+        const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+        const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+        if (orderA === orderB) {
+          return a.title.localeCompare(b.title);
+        }
+        return orderA - orderB;
+      });
 
     return NextResponse.json(games, {
       headers: {
