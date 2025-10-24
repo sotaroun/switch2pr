@@ -7,6 +7,7 @@ interface UseOverlayCommentsOptions {
   maxDisplay?: number;
   totalLanes?: number;
   initialBurst?: number;
+  prefetchedComments?: OverlayComment[];
 }
 
 interface UseOverlayCommentsReturn {
@@ -49,7 +50,8 @@ export function useOverlayComments({
   fetchComments,
   maxDisplay = 20,
   totalLanes = 20,
-  initialBurst = 10
+  initialBurst = 10,
+  prefetchedComments,
 }: UseOverlayCommentsOptions): UseOverlayCommentsReturn {
   const [comments, setComments] = useState<FloatingComment[]>([]);
   const [isHovered, setIsHovered] = useState(false);
@@ -88,6 +90,24 @@ export function useOverlayComments({
       isFetchingRef.current = false;
     }
   }, [gameId, fetchComments]);
+
+  useEffect(() => {
+    setComments([]);
+    setAvailableComments([]);
+    availableCommentsRef.current = [];
+    commentCounterRef.current = 0;
+    if (intervalRef.current) {
+      clearTimeout(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, [gameId]);
+
+  useEffect(() => {
+    if (prefetchedComments && prefetchedComments.length > 0) {
+      setAvailableComments(prefetchedComments);
+      availableCommentsRef.current = prefetchedComments;
+    }
+  }, [prefetchedComments]);
 
   /**
    * コメント追加 - Refを使用して常に最新のコメント一覧を参照
@@ -139,7 +159,8 @@ export function useOverlayComments({
    */
   const initialBurstComments = useCallback(() => {
     console.log('💥 初期バースト開始');
-    for (let i = 0; i < initialBurst; i++) {
+    const burstCount = Math.min(initialBurst, availableCommentsRef.current.length);
+    for (let i = 0; i < burstCount; i++) {
       setTimeout(() => {
         addComment();
       }, i * 100);
@@ -164,20 +185,22 @@ export function useOverlayComments({
     console.log('👆 ホバー開始');
     setIsHovered(true);
 
-    // コメント未取得時のみ取得
     if (availableCommentsRef.current.length === 0) {
       await loadComments();
       // 状態更新が確実に反映されるまで待つ
       await new Promise(resolve => setTimeout(resolve, 150));
     }
 
-    // 初期バースト
-    initialBurstComments();
+    if (availableCommentsRef.current.length === 0) {
+      console.log('⚠️ コメントがないため表示をスキップ');
+      setIsHovered(false);
+      return;
+    }
 
-    // 定期追加開始
     setTimeout(() => {
+      initialBurstComments();
       scheduleNext();
-    }, 500);
+    }, 0);
   }, [loadComments, initialBurstComments, scheduleNext]);
 
   /**
@@ -203,6 +226,18 @@ export function useOverlayComments({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (intervalRef.current) {
+      clearTimeout(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setComments([]);
+    const buffer = prefetchedComments ?? [];
+    availableCommentsRef.current = buffer;
+    setAvailableComments(buffer);
+    commentCounterRef.current = 0;
+  }, [gameId, prefetchedComments]);
 
   return {
     comments,

@@ -13,6 +13,8 @@ interface HorizontalScrollListProps {
   visibleCards?: number;
   onGameClick?: (gameId: string) => void;
   isMobile?: boolean;
+  onGameHover?: (gameId: string) => void;
+  onGameLeave?: () => void;
 }
 
 /**
@@ -32,7 +34,9 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
   games,
   isLoading = false,
   onGameClick,
-  isMobile = false
+  isMobile = false,
+  onGameHover,
+  onGameLeave
 }) => {
   const { 
     scrollRef, 
@@ -173,6 +177,12 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
                       setCenterIndex(index);
                     }
                     onGameClick?.(game.id);
+                  }}
+                  onMouseEnter={() => {
+                    onGameHover?.(game.id);
+                  }}
+                  onMouseLeave={() => {
+                    onGameLeave?.();
                   }}
                 />
               </Box>

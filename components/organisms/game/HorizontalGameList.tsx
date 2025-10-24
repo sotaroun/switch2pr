@@ -24,6 +24,10 @@ interface HorizontalGameListProps {
   error?: string | null;
   /** エラー時の再試行コールバック */
   onRetry?: () => void;
+  /** マウスホバー時のハンドラー */
+  onGameHover?: (gameId: string) => void;
+  /** ホバー解除時のハンドラー */
+  onGameLeave?: () => void;
 }
 
 /**
@@ -46,7 +50,9 @@ const HorizontalGameList: React.FC<HorizontalGameListProps> = memo(({
   onGameClick,
   isLoading = false,
   error = null,
-  onRetry
+  onRetry,
+  onGameHover,
+  onGameLeave
 }) => {
   const [state, setState] = useState<HorizontalScrollState>('loading');
   const [isMobileView, setIsMobileView] = useState(false);
@@ -108,6 +114,8 @@ const HorizontalGameList: React.FC<HorizontalGameListProps> = memo(({
           isLoading={false}
           onGameClick={onGameClick}
           isMobile={isMobileView}
+          onGameHover={onGameHover}
+          onGameLeave={onGameLeave}
         />
       )}
 

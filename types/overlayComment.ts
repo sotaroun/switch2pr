@@ -20,6 +20,8 @@ export interface FloatingComment extends OverlayComment {
   lane: number;
   /** アニメーション時間（秒） */
   duration: number;
+  /** アニメーション開始遅延（秒） */
+  delay: number;
   /** フォントサイズ（ランダム） */
   fontSize: number;
   /** 一意のキー */

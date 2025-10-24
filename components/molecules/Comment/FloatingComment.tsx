@@ -1,6 +1,5 @@
 import React, { memo } from 'react';
 import { Box, Text } from "@chakra-ui/react";
-import { keyframes } from '@emotion/react';
 import { FloatingComment as FloatingCommentType } from "@/types/overlayComment";
 
 interface FloatingCommentProps {
@@ -9,16 +8,6 @@ interface FloatingCommentProps {
   /** レーンの高さ（%） */
   laneHeight: number;
 }
-
-// アニメーション定義（完全に画面外に出るまで）
-const slideLeft = keyframes`
-  from {
-    transform: translateX(100vw);
-  }
-  to {
-    transform: translateX(calc(-100vw - 100%));
-  }
-`;
 
 /**
  * 流れるコメント表示のMoleculeコンポーネント
@@ -33,12 +22,18 @@ const FloatingComment: React.FC<FloatingCommentProps> = memo(({ comment, laneHei
     <Box
       position="fixed"
       top={`${comment.lane * laneHeight}%`}
-      right="0"
+      left="88vw"
       whiteSpace="nowrap"
       pointerEvents="none"
       zIndex={1000}
-      css={{
-        animation: `${slideLeft} ${comment.duration}s linear forwards`,
+      backgroundColor="rgba(0,0,0,0.5)"
+      borderRadius="md"
+      display="inline-flex"
+      alignItems="center"
+      style={{
+        animation: `overlay-slide-left ${comment.duration}s linear ${comment.delay}s forwards`,
+        transform: "translateX(0)",
+        willChange: "transform",
       }}
     >
       <Text

@@ -40,6 +40,8 @@ export interface Game {
   categories: GameCategory[];
   /** ゲームアイコンのURL（オプション） */
   iconUrl?: string;
+  /** 概要文（オプション） */
+  summary?: string;
 }
 
 /**
