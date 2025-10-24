@@ -1,9 +1,5 @@
 import { isLikelyJapanese } from "@/lib/translation/text-utils";
-import type {
-  GameDetailResponse,
-  GameOverviewData,
-  GameOverviewMock,
-} from "@/types/game-detail";
+import type { GameDetailResponse, GameOverviewData } from "@/types/game-detail";
 
 const DEFAULT_SUMMARY = "概要情報は未掲載です。";
 const TRANSLATION_ENDPOINT = "/api/deepl/translate";
@@ -17,12 +13,11 @@ type GameOverviewResult = {
   error?: string;
 };
 
-function normalizeOverview(data: GameDetailResponse | GameOverviewMock | null): GameOverviewData | null {
+function normalizeOverview(data: GameDetailResponse | null): GameOverviewData | null {
   if (!data) return null;
   return {
     name: data.name,
-    summary:
-      ("summary" in data ? data.summary : data.summaryJa ?? data.summaryEn) ?? DEFAULT_SUMMARY,
+    summary: data.summary ?? DEFAULT_SUMMARY,
     genres: data.genres ?? [],
   };
 }
@@ -91,40 +86,15 @@ async function fetchIgdbOverview(gameId: string): Promise<GameOverviewData | nul
   }
 }
 
-async function fetchMockOverview(gameId: string): Promise<GameOverviewData | null> {
-  try {
-    const response = await fetch(`/api/mocks/${gameId}`, { cache: "no-store" });
-    if (!response.ok) {
-      return null;
-    }
-    const json = (await response.json()) as GameOverviewMock;
-    const overview = normalizeOverview(json);
-    if (!overview) return null;
-    return translateIfNeeded(overview);
-  } catch (error) {
-    console.error("Failed to fetch mock overview", error);
-    return null;
-  }
-}
-
 export async function getGameOverview(gameId: string | null): Promise<GameOverviewResult> {
   if (!gameId) {
     return { data: null, error: "ゲームIDが見つかりません。" };
   }
 
-  const warnings: string[] = [];
-
-  const igdb = await fetchIgdbOverview(gameId);
-  if (igdb) {
-    return { data: igdb };
+  const overview = await fetchIgdbOverview(gameId);
+  if (overview) {
+    return { data: overview };
   }
-  warnings.push("IGDBからゲーム情報を取得できませんでした。");
 
-  const mock = await fetchMockOverview(gameId);
-  if (mock) {
-    return { data: mock, error: warnings.join(" ") || undefined };
-  }
-  warnings.push("モックデータが見つかりません。");
-
-  return { data: null, error: warnings.join(" ") };
+  return { data: null, error: "IGDBからゲーム情報を取得できませんでした。" };
 }

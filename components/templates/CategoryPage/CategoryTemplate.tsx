@@ -6,10 +6,10 @@ import {
   Heading, 
   Text
 } from "@chakra-ui/react";
-import CategoryFilterOrg from '../../organisms/SearchSection/CategoryFilter';
-import SearchSection from '../../organisms/SearchSection/SearchSection';
-import GameGrid from '../../organisms/GameSection/GameGrid';
-import { Game, GameCategory } from '../../../types/game';
+import CategoryFilterOrg from "@/components/organisms/search/CategoryFilter";
+import SearchSection from "@/components/organisms/search/SearchSection";
+import GameGrid from "@/components/organisms/game/GameGrid";
+import { Game, GameCategory } from "@/types/game";
 
 interface CategoryTemplateProps {
   /** 全ゲーム一覧（検索用） */

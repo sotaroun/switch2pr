@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Box } from "@chakra-ui/react";
-import SearchInput from '../../../atoms/Input/SearchInput';
-import SearchResults from './SearchResults';
-import { Game, SearchResult } from '../../../types/game';
+import SearchInput from "@/components/atoms/form/SearchInput";
+import SearchResults from "./SearchResults";
+import { Game, SearchResult } from "@/types/game";
 
 interface SearchBarProps {
   /** 検索対象のゲーム一覧 */

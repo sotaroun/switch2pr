@@ -9,7 +9,7 @@ import {
   ensureAnonReviewSession,
   getBrowserSupabaseClient,
   isSupabaseConfigured,
-} from "@/lib/supabase/browser-client";
+} from "@/lib/api/supabase";
 import { RatingStars } from "@/components/atoms/StarRatingDisplay";
 
 type FormState = {

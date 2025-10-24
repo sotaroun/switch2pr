@@ -7,14 +7,6 @@ export type GameDetailResponse = {
   screenshots: string[];
 };
 
-export type GameOverviewMock = {
-  id: number;
-  name: string;
-  summaryJa?: string | null;
-  summaryEn?: string | null;
-  genres?: string[];
-};
-
 export type GameOverviewData = {
   name: string;
   summary: string;

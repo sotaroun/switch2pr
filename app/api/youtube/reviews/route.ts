@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { fetchYoutubeGameComments } from "@/lib/youtube/client";
+import { fetchYoutubeGameComments } from "@/lib/api/youtube";
 
 export type YoutubeReviewResponse = {
   videoId: string;

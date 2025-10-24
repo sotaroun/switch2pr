@@ -10,9 +10,9 @@ import {
   Flex
 } from "@chakra-ui/react";
 import { MdClear } from "react-icons/md";
-import CategoryButton from '../../../atoms/Button/CategoryButton';
-import ActionButton from '../../../atoms/Button/ActionButton';
-import { GameCategory } from '../../../types/game';
+import CategoryButton from "@/components/atoms/buttons/CategoryButton";
+import ActionButton from "@/components/atoms/buttons/ActionButton";
+import { GameCategory } from "@/types/game";
 
 interface CategoryFilterProps {
   /** 利用可能なカテゴリ一覧（厳密な型） */

@@ -4,14 +4,14 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { Box, Stack, Table, Text } from "@chakra-ui/react";
 import { useParams } from "next/navigation";
 
-import { HelpfulVoteButton } from "../atoms/HelpfulVoteButton";
-import { BubbleIcon } from "../atoms/icons/BubbleIcon";
-import { YouTubeIcon } from "../atoms/icons/YouTubeIcon";
-import { ReviewSourceToggle } from "../molecules/review-table/ReviewSourceToggle";
-import { ReviewTableHeader } from "../molecules/review-table/ReviewTableHeader";
-import { baseColumnsMap } from "../molecules/review-table/columns";
-import { sortOptions } from "../molecules/review-table/config";
-import { buildHelpfulStorageKey } from "../molecules/review-table/utils";
+import { HelpfulVoteButton } from "@/components/atoms/HelpfulVoteButton";
+import { BubbleIcon } from "@/components/atoms/icons/BubbleIcon";
+import { YouTubeIcon } from "@/components/atoms/icons/YouTubeIcon";
+import { ReviewSourceToggle } from "@/components/molecules/review-table/ReviewSourceToggle";
+import { ReviewTableHeader } from "@/components/molecules/review-table/ReviewTableHeader";
+import { baseColumnsMap } from "@/components/molecules/review-table/columns";
+import { sortOptions } from "@/components/molecules/review-table/config";
+import { buildHelpfulStorageKey } from "@/components/molecules/review-table/utils";
 import type {
   GameReviews,
   OnelinerReview,
@@ -27,7 +27,7 @@ import {
   ensureAnonReviewSession,
   getBrowserSupabaseClient,
   isSupabaseConfigured,
-} from "@/lib/supabase/browser-client";
+} from "@/lib/api/supabase";
 
 const HELPFUL_STORAGE_KEY = "switch2pr_helpful_votes";
 

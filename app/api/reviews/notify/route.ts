@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { sendReviewNotification } from "@/lib/slack/notifications";
+import { sendReviewNotification } from "@/lib/api/slack";
 
 type ReviewNotificationRequest = {
   gameId?: string;

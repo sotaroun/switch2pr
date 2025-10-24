@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Box, Stack, Text, Flex, Badge } from "@chakra-ui/react";
-import { CATEGORY_GRADIENTS, HORIZONTAL_SCROLL_UI } from '../../../types/horizontalScroll';
+import { CATEGORY_GRADIENTS } from "./constants";
 
 interface GameCardProps {
   title: string;
@@ -44,14 +44,10 @@ const GameCard: React.FC<GameCardProps> = memo(({
 }) => {
   // カテゴリに応じた背景グラデーション（コンパクトモード用）
   const getCategoryGradient = (cats: string[]): string => {
-    const gradientMap: Record<string, string> = {
-      'アクション': 'linear(to-br, red.600, red.900)',
-      'RPG': 'linear(to-br, purple.600, purple.900)',
-      'シューティング': 'linear(to-br, blue.600, blue.900)',
-      'スポーツ': 'linear(to-br, green.600, green.900)',
-      'パズル': 'linear(to-br, yellow.600, yellow.900)'
-    };
-    return gradientMap[cats[0]] || 'linear(to-br, gray.600, gray.900)';
+    if (cats.length === 0) {
+      return "linear(to-br, gray.600, gray.900)";
+    }
+    return CATEGORY_GRADIENTS[cats[0]] ?? "linear(to-br, gray.600, gray.900)";
   };
 
   // コンパクトモード（横スクロール用）
@@ -59,18 +55,37 @@ const GameCard: React.FC<GameCardProps> = memo(({
     return (
       <Box
         position="relative"
-        cursor={isCenter ? 'pointer' : 'default'}
+        cursor={isCenter ? "pointer" : "default"}
         onClick={onClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        transition="all 0.3s ease"
-        transform={isCenter ? 'scale(1.1)' : 'scale(1)'}
-        _hover={isCenter ? { transform: 'scale(1.15)' } : undefined}
+        transition="all 0.2s ease"
+        transform={isCenter ? "scale(1.08)" : "scale(1)"}
+        _hover={{
+          transform: "scale(1.04)",
+          "&::before": {
+            opacity: 1,
+          },
+        }}
+        _before={{
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          borderRadius: "lg",
+          background: "linear-gradient(120deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05))",
+          opacity: 0,
+          transition: "opacity 0.2s ease",
+          pointerEvents: "none",
+          zIndex: 1,
+        }}
         w="full"
         h="full"
       >
         <Box
-          bgGradient={getCategoryGradient(categories)}
+          bgGradient={iconUrl ? undefined : getCategoryGradient(categories)}
+          backgroundImage={iconUrl ? `url(${iconUrl})` : undefined}
+          backgroundSize="cover"
+          backgroundPosition="center"
           rounded="lg"
           p={4}
           h="250px"
@@ -81,9 +96,14 @@ const GameCard: React.FC<GameCardProps> = memo(({
           alignItems="center"
           position="relative"
           overflow="hidden"
-          boxShadow={isCenter ? 'xl' : 'md'}
-          borderWidth={isCenter ? '2px' : '0px'}
-          borderColor={isCenter ? 'white' : 'transparent'}
+          boxShadow={isCenter ? "0 14px 28px rgba(0,0,0,0.45)" : "0 6px 18px rgba(0,0,0,0.3)"}
+          borderWidth={isCenter ? "2px" : "1px"}
+          borderColor={isCenter ? "whiteAlpha.500" : "whiteAlpha.200"}
+          transition="border-color 0.2s ease, box-shadow 0.2s ease"
+          _hover={{
+            borderColor: "whiteAlpha.400",
+            boxShadow: "0 18px 32px rgba(0,0,0,0.5)",
+          }}
         >
           {/* グラデーションオーバーレイ */}
           <Box

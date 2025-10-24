@@ -1,9 +1,8 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
-import { getSupabaseServiceRoleClient } from "@/lib/supabase/server-client";
-import { invokeReviewApprovalFunction } from "@/lib/supabase/review-approval";
-import { sendReviewDecisionNotification } from "@/lib/slack/notifications";
+import { getSupabaseServiceRoleClient, invokeReviewApprovalFunction } from "@/lib/api/supabase";
+import { sendReviewDecisionNotification } from "@/lib/api/slack";
 
 type PendingReview = {
   id: string;

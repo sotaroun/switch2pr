@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Box } from "@chakra-ui/react";
-import FloatingComment from '../../molecules/Comment/FloatingComment';
-import { FloatingComment as FloatingCommentType } from '../../../types/overlayComment';
+import FloatingComment from "../../molecules/Comment/FloatingComment";
+import { FloatingComment as FloatingCommentType } from "@/types/overlayComment";
 
 interface OverlayCommentsProps {
   /** 表示するコメント一覧 */
