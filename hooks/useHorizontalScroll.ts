@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { ScrollPosition, HorizontalScrollConfig } from '../types/horizontalScroll';
+import { ScrollPosition, HorizontalScrollConfig, HORIZONTAL_SCROLL_UI } from '../types/horizontalScroll';
 
 interface UseHorizontalScrollReturn {
   /** スクロールコンテナRef */

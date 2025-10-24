@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { Box, Stack, Text, Flex, Badge } from "@chakra-ui/react";
+import { CATEGORY_GRADIENTS, HORIZONTAL_SCROLL_UI } from '../../../types/horizontalScroll';
 
 interface GameCardProps {
   title: string;
