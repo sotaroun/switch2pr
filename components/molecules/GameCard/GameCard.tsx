@@ -3,18 +3,22 @@ import { Box, Stack, Text, Flex, Badge } from "@chakra-ui/react";
 
 interface GameCardProps {
   title: string;
-  categories: string[];
+  categories?: string[];
   iconUrl?: string;
   onClick?: () => void;
   /** ホバー開始時のハンドラー */
   onMouseEnter?: () => void;
   /** ホバー終了時のハンドラー */
   onMouseLeave?: () => void;
+  /** 横スクロール時のセンター表示（モバイル用） */
+  isCenter?: boolean;
+  /** コンパクト表示モード（横スクロール用） */
+  compact?: boolean;
 }
 
 /**
  * ゲームカード表示のMoleculeコンポーネント
- * オーバーレイコメント対応版
+ * オーバーレイコメント対応版 + 横スクロール対応
  * 
  * @example
  * ```tsx
@@ -29,12 +33,114 @@ interface GameCardProps {
  */
 const GameCard: React.FC<GameCardProps> = memo(({
   title,
-  categories,
+  categories = [],
   iconUrl,
   onClick,
   onMouseEnter,
-  onMouseLeave
+  onMouseLeave,
+  isCenter = false,
+  compact = false
 }) => {
+  // カテゴリに応じた背景グラデーション（コンパクトモード用）
+  const getCategoryGradient = (cats: string[]): string => {
+    const gradientMap: Record<string, string> = {
+      'アクション': 'linear(to-br, red.600, red.900)',
+      'RPG': 'linear(to-br, purple.600, purple.900)',
+      'シューティング': 'linear(to-br, blue.600, blue.900)',
+      'スポーツ': 'linear(to-br, green.600, green.900)',
+      'パズル': 'linear(to-br, yellow.600, yellow.900)'
+    };
+    return gradientMap[cats[0]] || 'linear(to-br, gray.600, gray.900)';
+  };
+
+  // コンパクトモード（横スクロール用）
+  if (compact) {
+    return (
+      <Box
+        position="relative"
+        cursor={isCenter ? 'pointer' : 'default'}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        transition="all 0.3s ease"
+        transform={isCenter ? 'scale(1.1)' : 'scale(1)'}
+        _hover={isCenter ? { transform: 'scale(1.15)' } : undefined}
+        w="full"
+        h="full"
+      >
+        <Box
+          bgGradient={getCategoryGradient(categories)}
+          rounded="lg"
+          p={4}
+          h="250px"
+          w="full"
+          display="flex"
+          flexDirection="column"
+          justifyContent="flex-end"
+          alignItems="center"
+          position="relative"
+          overflow="hidden"
+          boxShadow={isCenter ? 'xl' : 'md'}
+          borderWidth={isCenter ? '2px' : '0px'}
+          borderColor={isCenter ? 'white' : 'transparent'}
+        >
+          {/* グラデーションオーバーレイ */}
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            bgGradient="linear(to-t, blackAlpha.800, blackAlpha.0)"
+            zIndex={1}
+          />
+
+          {/* テキストコンテンツ */}
+          <Stack
+            direction="column"
+            gap={2}
+            textAlign="center"
+            w="full"
+            zIndex={2}
+          >
+            <Text
+              fontSize="sm"
+              color="whiteAlpha.700"
+              fontWeight="500"
+              textTransform="uppercase"
+              letterSpacing="wider"
+            >
+              {categories[0] || 'ゲーム'}
+            </Text>
+            <Text
+              fontSize={isCenter ? 'md' : 'sm'}
+              fontWeight="bold"
+              color="white"
+              lineHeight="tight"
+              lineClamp={isCenter ? 3 : 2}
+              transition="font-size 0.3s ease"
+            >
+              {title}
+            </Text>
+          </Stack>
+
+          {/* 非クリック可能時のオーバーレイ */}
+          {!isCenter && (
+            <Box
+              position="absolute"
+              inset={0}
+              rounded="lg"
+              bg="blackAlpha.300"
+              zIndex={3}
+              transition="background-color 0.3s ease"
+            />
+          )}
+        </Box>
+      </Box>
+    );
+  }
+
+  // 通常モード（既存の表示）
   return (
     <Box
       bg="gray.800"
@@ -87,7 +193,7 @@ const GameCard: React.FC<GameCardProps> = memo(({
 
           {/* カテゴリタグ */}
           <Flex gap={1} flexWrap="wrap" justify="center">
-            {categories.map(cat => (
+            {categories.map((cat: string) => (
               <Badge
                 key={cat}
                 colorScheme="blue"

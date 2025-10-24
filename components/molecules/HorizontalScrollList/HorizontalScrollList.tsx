@@ -1,7 +1,7 @@
 import React, { memo, useRef, useEffect } from 'react';
 import { Box } from "@chakra-ui/react";
 import { Game } from '../../../types/game';
-import GameCard from '../../../atoms/Card/GameCard';
+import GameCard from '../GameCard/GameCard';
 import CardSkeleton from '../../../atoms/Loading/CardSkeleton';
 import ScrollButton from '../../../atoms/Button/ScrollButton';
 import { useHorizontalScroll } from '../../../hooks/useHorizontalScroll';
@@ -163,8 +163,11 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
                 maxW={cardWidth}
               >
                 <GameCard
-                  game={game}
+                  title={game.title}
+                  categories={game.categories}
+                  iconUrl={game.iconUrl}
                   isCenter={isCenter}
+                  compact={true}
                   onClick={() => {
                     if (isMobile) {
                       setCenterIndex(index);
