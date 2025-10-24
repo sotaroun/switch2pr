@@ -1,4 +1,9 @@
-import type { ReviewTabKey, Source, SortTab } from "./types";
+import type {
+  ReviewTabKey,
+  SortOption,
+  YoutubeSortKey,
+  OnelinerSortKey,
+} from "./types";
 
 export const tabLabels: Record<ReviewTabKey, string> = {
   youtube: "YouTube口コミ",
@@ -46,14 +51,17 @@ export const tabButtonThemes: Record<ReviewTabKey, {
 
 export const tabOrder: ReviewTabKey[] = ["youtube", "oneliner", "form"];
 
-export const sortOptions: Record<Source, SortTab[]> = {
+export const sortOptions: {
+  youtube: SortOption<YoutubeSortKey>[];
+  oneliner: SortOption<OnelinerSortKey>[];
+} = {
   youtube: [
-    { label: "新着順", isActive: true },
-    { label: "高評価順" },
+    { label: "新着順", value: "published_desc" },
+    { label: "高評価順", value: "like_desc" },
   ],
   oneliner: [
-    { label: "新着順", isActive: true },
-    { label: "評価順" },
-    { label: "参考になった順" },
+    { label: "新着順", value: "posted_desc" },
+    { label: "評価順", value: "rating_desc" },
+    { label: "参考になった順", value: "helpful_desc" },
   ],
 };
