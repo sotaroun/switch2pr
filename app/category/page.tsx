@@ -31,7 +31,7 @@ const CategoryPage: React.FC = () => {
 
   const allGames: Game[] = useMemo(() => [
     { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },
-    { id: '2', title: 'スプラトゥーン3', categories: ['シューティング'] },
+    { id: '2', title: 'スプラトゥーン3', categories: ['シューター'] },
     { id: '3', title: 'マリオカート8 デラックス', categories: ['スポーツ'] },
     { id: '4', title: 'ぷよぷよテトリス2', categories: ['パズル'] },
     { id: '5', title: 'ベヨネッタ3', categories: ['アクション'] },
