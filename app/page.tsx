@@ -8,6 +8,9 @@ import OverlayComments from "@/components/organisms/CommentSection/OverlayCommen
 import { fetchOverlayCommentsAPI } from "@/lib/overlayComments";
 import { Game } from "@/types/game";
 import type { OverlayComment, FloatingComment } from "@/types/overlayComment";
+import { Header } from "@/components/organisms/Header/Header";
+import { headerMenus } from "@/datas/headerData";
+import { Metadata } from "next";
 
 const FALLBACK_GAMES: Game[] = [
   { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },
@@ -208,6 +211,7 @@ const HomePage: React.FC = () => {
       <Container maxW="90%" py={8}>
         <Stack direction="column" gap={12}>
           {/* ページタイトル */}
+          <Header menus={headerMenus}></Header>
           <Heading 
             as="h1" 
             fontSize={{ base: "3xl", md: "5xl" }} 
