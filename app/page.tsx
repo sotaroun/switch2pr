@@ -14,7 +14,7 @@ import { Metadata } from "next";
 
 const FALLBACK_GAMES: Game[] = [
   { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },
-  { id: '2', title: 'スプラトゥーン3', categories: ['シューティング'] },
+  { id: '2', title: 'スプラトゥーン3', categories: ['シューター'] },
   { id: '3', title: 'マリオカート8 デラックス', categories: ['スポーツ'] },
   { id: '4', title: 'ぷよぷよテトリス2', categories: ['パズル'] },
   { id: '5', title: 'ベヨネッタ3', categories: ['アクション'] },
@@ -211,7 +211,6 @@ const HomePage: React.FC = () => {
       <Container maxW="90%" py={8}>
         <Stack direction="column" gap={12}>
           {/* ページタイトル */}
-          <Header menus={headerMenus}></Header>
           <Heading 
             as="h1" 
             fontSize={{ base: "3xl", md: "5xl" }} 
