@@ -1,6 +1,5 @@
 import React, { memo, useState, useCallback, useEffect } from 'react';
 import { 
-  Box, 
   VStack, 
   Heading, 
   Text, 
@@ -28,6 +27,14 @@ interface HorizontalGameListProps {
   onGameHover?: (gameId: string) => void;
   /** ホバー解除時のハンドラー */
   onGameLeave?: () => void;
+  /** 無限スクロール用の追加読み込みコールバック */
+  onLoadMore?: () => void;
+  /** 追加データが存在するか */
+  hasMore?: boolean;
+  /** 追加読み込み中か */
+  isLoadingMore?: boolean;
+  /** データが空の場合のメッセージ */
+  emptyMessage?: string;
 }
 
 /**
@@ -52,7 +59,11 @@ const HorizontalGameList: React.FC<HorizontalGameListProps> = memo(({
   error = null,
   onRetry,
   onGameHover,
-  onGameLeave
+  onGameLeave,
+  onLoadMore,
+  hasMore = false,
+  isLoadingMore = false,
+  emptyMessage,
 }) => {
   const [state, setState] = useState<HorizontalScrollState>('loading');
   const [isMobileView, setIsMobileView] = useState(false);
@@ -116,6 +127,9 @@ const HorizontalGameList: React.FC<HorizontalGameListProps> = memo(({
           isMobile={isMobileView}
           onGameHover={onGameHover}
           onGameLeave={onGameLeave}
+          onEndReached={onLoadMore}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
         />
       )}
 
@@ -123,10 +137,12 @@ const HorizontalGameList: React.FC<HorizontalGameListProps> = memo(({
         <Center py={16}>
           <VStack gap={4} textAlign="center">
             <Text fontSize="lg" color="whiteAlpha.700">
-              ゲームがありません
+              {emptyMessage ?? "ゲームがありません"}
             </Text>
             <Text fontSize="sm" color="whiteAlpha.600">
-              ゲームデータを読み込んでください
+              {emptyMessage
+                ? "管理画面で表示設定を確認してください"
+                : "ゲームデータを読み込んでください"}
             </Text>
           </VStack>
         </Center>

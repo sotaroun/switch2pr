@@ -34,7 +34,7 @@ export const HelpfulVoteButton = ({ count, ...props }: HelpfulVoteButtonProps) =
     }}
     {...props}
   >
-    <HStack spacing={2} align="center">
+    <HStack gap={2} align="center">
       <Icon as={LuThumbsUp} boxSize={4} color="inherit" />
       <Text as="span" fontSize="sm" fontWeight="semibold" color="inherit">
         {count}

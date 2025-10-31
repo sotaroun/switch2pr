@@ -23,8 +23,9 @@ type RawGame = {
   screenshots?: Array<{ image_id?: string | null }> | null;
 };
 
-export async function GET(_req: Request, ctx: { params: { id: string } }) {
-  const id = Number(ctx.params.id);
+export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
+  const id = Number(params.id);
   if (!Number.isInteger(id)) {
     return NextResponse.json({ error: "invalid id" }, { status: 400 });
   }

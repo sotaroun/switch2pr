@@ -8,7 +8,7 @@ import ReviewSwitcherTable from "@/components/organisms/ReviewSwitcherTable";
 export function GameDetailTemplate() {
   return (
     <Stack
-      spacing={{ base: 6, xl: 8 }}
+      gap={{ base: 6, xl: 8 }}
       w="full"
       align="center"
       justify="flex-start"

@@ -1,9 +1,9 @@
 import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
-import type { BoxProps } from "@chakra-ui/react";
+import type { FlexProps } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 import type { SortTab } from "./types";
 
-export type ReviewTableHeaderProps = BoxProps & {
+export type ReviewTableHeaderProps = FlexProps & {
   icon: ReactNode;
   title: string;
   subtitle: string;
@@ -18,7 +18,7 @@ export const ReviewTableHeader = ({ icon, title, subtitle, tabs, ...props }: Rev
     gap={4}
     {...props}
   >
-    <HStack align="flex-start" spacing={3}>
+    <HStack align="flex-start" gap={3}>
       <Box flexShrink={0}>{icon}</Box>
       <Box>
         <Text fontSize="xl" fontWeight="bold" color="rgba(255, 255, 255, 0.95)">
@@ -30,7 +30,7 @@ export const ReviewTableHeader = ({ icon, title, subtitle, tabs, ...props }: Rev
       </Box>
     </HStack>
 
-    <HStack spacing={2}>
+    <HStack gap={2}>
       {tabs.map((tab) => (
         <Button
           key={tab.label}

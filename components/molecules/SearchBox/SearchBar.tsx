@@ -47,16 +47,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const searchResults = useMemo<SearchResult[]>(() => {
     const trimmedText = searchText.trim();
     if (trimmedText === '') return [];
-    
+
     const lowerSearchText = trimmedText.toLowerCase();
-    
+
     return games
-      .filter(game => 
-        game.title.toLowerCase().includes(lowerSearchText)
+      .filter((game) =>
+        game.title.toLowerCase().includes(lowerSearchText) || game.id === trimmedText
       )
-      .map(game => ({
+      .map((game) => ({
         id: game.id,
-        title: game.title
+        title: game.title,
       }));
   }, [searchText, games]);
 
@@ -98,6 +98,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
         e.preventDefault();
         if (searchResults[selectedIndex]) {
           handleSelectResult(searchResults[selectedIndex]);
+        } else {
+          const trimmed = searchText.trim();
+          if (trimmed && /^\d+$/.test(trimmed)) {
+            handleSelectResult({ id: trimmed, title: trimmed });
+          }
         }
         break;
       
@@ -135,15 +140,26 @@ const SearchBar: React.FC<SearchBarProps> = ({
   }, [searchText]);
 
   return (
-    <Box position="relative" w="full">
+    <Box position="relative" w={{ base: "100%", md: "520px" }}>
       <SearchInput
         value={searchText}
         onChange={handleSearchChange}
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
+        showButton
+        onSubmit={() => {
+          if (searchResults[selectedIndex]) {
+            handleSelectResult(searchResults[selectedIndex]);
+          } else {
+            const trimmed = searchText.trim();
+            if (trimmed && /^\d+$/.test(trimmed)) {
+              handleSelectResult({ id: trimmed, title: trimmed });
+            }
+          }
+        }}
       />
-      
+
       {isOpen && (
         <SearchResults
           results={searchResults}

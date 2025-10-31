@@ -1,5 +1,5 @@
 import { Box, HStack, Text } from "@chakra-ui/react";
-import type { HStackProps } from "@chakra-ui/react";
+import type { StackProps } from "@chakra-ui/react";
 import { useCallback, useMemo, useState } from "react";
 
 const STAR_MASK_URL =
@@ -81,7 +81,7 @@ export const RatingStars = ({
   return (
     <HStack
       as="span"
-      spacing={1}
+      gap={1}
       role={readOnly ? "img" : "slider"}
       aria-label={ariaLabel}
       aria-valuemin={readOnly ? undefined : 0}
@@ -98,7 +98,7 @@ export const RatingStars = ({
             key={index}
             boxSize={boxSize}
             as={readOnly ? "span" : "button"}
-            type="button"
+            {...(!readOnly && { type: "button" as const })}
             cursor={readOnly ? "default" : "pointer"}
             onClick={() => handleClick(index + 1)}
             _active={!readOnly ? { transform: "scale(0.98)" } : undefined}
@@ -131,12 +131,12 @@ export const RatingStars = ({
   );
 };
 
-export type StarRatingDisplayProps = HStackProps & {
+export type StarRatingDisplayProps = StackProps & {
   rating: number;
 };
 
 export const StarRatingDisplay = ({ rating, ...props }: StarRatingDisplayProps) => (
-  <HStack spacing={2} {...props}>
+  <HStack gap={2} {...props}>
     <RatingStars value={rating} readOnly size="sm" />
   </HStack>
 );

@@ -3,22 +3,98 @@
  * BE修正時はここを更新するだけで全体に反映される
  */
 export type GameCategory = 
+  | 'ピンボール'
+  | 'アドベンチャー'
+  | 'インディー'
+  | 'アーケード'
+  | 'ビジュアルノベル'
+  | 'カード＆ボードゲーム'
+  | 'MOBA'
+  | 'ポイントアンドクリック'
+  | '対戦格闘'
+  | 'シューター'
+  | '音楽'
+  | 'プラットフォーム'
+  | 'パズル'
+  | 'レース'
+  | 'RTS'
+  | 'RPG'
+  | 'シミュレーター'
+  | 'スポーツ'
+  | 'ストラテジー'
+  | 'SRPG'
+  | 'タクティカル'
+  | 'ハクスラ'
+  | 'クイズ'
   | 'アクション' 
-  | 'RPG' 
-  | 'シューティング' 
-  | 'スポーツ' 
-  | 'パズル';
+  | 'ファンタジー' 
+  | 'サイエンスフィクション' 
+  | 'ホラー'
+  | 'スリラー'
+  | 'サバイバル'
+  | '歴史'
+  | 'ステルス'
+  | 'コメディー'
+  | 'ビジネス'
+  | 'ドラマ'
+  | 'ノンフィクション'
+  | 'サンドボックス'
+  | '学習'
+  | 'キッズ'
+  | 'オープンワールド'
+  | '戦争'
+  | 'パーティ'
+  | '4x(開拓ストラテジー)'
+  | 'エロティック'
+  | 'ミステリー'
+  | '恋愛';
 
-/**
- * 利用可能な全カテゴリの配列
- * UI表示やバリデーションに使用
- */
 export const ALL_GAME_CATEGORIES: readonly GameCategory[] = [
-  'アクション',
+  'ピンボール',
+  'アドベンチャー',
+  'インディー',
+  'アーケード',
+  'ビジュアルノベル',
+  'カード＆ボードゲーム',
+  'MOBA',
+  'ポイントアンドクリック',
+  '対戦格闘',
+  'シューター',
+  '音楽',
+  'プラットフォーム',
+  'パズル',
+  'レース',
+  'RTS',
   'RPG',
-  'シューティング',
+  'シミュレーター',
   'スポーツ',
-  'パズル'
+  'ストラテジー',
+  'SRPG',
+  'タクティカル',
+  'ハクスラ',
+  'クイズ',
+  'アクション',
+  'ファンタジー',
+  'サイエンスフィクション',
+  'ホラー',
+  'スリラー',
+  'サバイバル',
+  '歴史',
+  'ステルス',
+  'コメディー',
+  'ビジネス',
+  'ドラマ',
+  'ノンフィクション',
+  'サンドボックス',
+  '学習',
+  'キッズ',
+  'オープンワールド',
+  '戦争',
+  'パーティ',
+  '4x(開拓ストラテジー)',
+  'エロティック',
+  'ミステリー',
+  '恋愛'
 ] as const;
 
 /**
@@ -27,6 +103,29 @@ export const ALL_GAME_CATEGORIES: readonly GameCategory[] = [
 export function isValidGameCategory(value: string): value is GameCategory {
   return ALL_GAME_CATEGORIES.includes(value as GameCategory);
 }
+
+export type GamePlatform =
+  | "Nintendo Switch"
+  | "PlayStation 5"
+  | "PlayStation 4"
+  | "Xbox Series X|S"
+  | "Xbox One"
+  | "PC"
+  | "Steam Deck"
+  | "Mobile"
+  | "その他";
+
+export const ALL_GAME_PLATFORMS: readonly GamePlatform[] = [
+  "Nintendo Switch",
+  "PlayStation 5",
+  "PlayStation 4",
+  "Xbox Series X|S",
+  "Xbox One",
+  "PC",
+  "Steam Deck",
+  "Mobile",
+  "その他",
+] as const;
 
 /**
  * ゲームの基本情報を表す型
@@ -50,6 +149,14 @@ export interface Game {
   displayName?: string | null;
   /** 並び順 */
   sortOrder?: number | null;
+  /** ホーム新作セクションに出すか */
+  featuredNewRelease?: boolean;
+  /** ホーム人気セクションに出すか */
+  featuredPopular?: boolean;
+  /** ホームおすすめセクションに出すか */
+  featuredRecommended?: boolean;
+  /** 対応プラットフォーム */
+  platforms?: GamePlatform[];
 }
 
 /**

@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 import { getSupabaseServiceRoleClient } from "@/lib/api/supabase";
 import type { OverlayComment } from "@/types/overlayComment";
 
-export async function GET(_req: Request, ctx: { params: { gameId: string } }) {
-  const gameId = ctx.params.gameId;
+export async function GET(_req: Request, ctx: { params: Promise<{ gameId: string }> }) {
+  const params = await ctx.params;
+  const gameId = params.gameId;
   if (!gameId) {
     return NextResponse.json({ error: "game_id_missing" }, { status: 400 });
   }

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 import { buildCoverUrl, igdbRequest } from "@/lib/api/igdb";
 import { getSupabaseServiceRoleClient } from "@/lib/api/supabase";
-import type { Game, GameCategory } from "@/types/game";
+import { mapGenres, mapPlatforms } from "@/lib/gameMetadata";
+import type { Game } from "@/types/game";
 
 const GAME_FIELDS = [
   "id",
@@ -10,6 +11,8 @@ const GAME_FIELDS = [
   "summary",
   "cover.image_id",
   "genres.name",
+  "platforms.abbreviation",
+  "platforms.name",
 ];
 
 const POPULAR_BACKUP_QUERY = `
@@ -24,55 +27,17 @@ type RawGame = {
   summary?: string | null;
   cover?: { image_id?: string | null } | null;
   genres?: Array<{ name?: string | null }> | null;
+  platforms?: Array<{ abbreviation?: string | null; name?: string | null }> | null;
 };
-
-const GENRE_TO_CATEGORY: Record<string, GameCategory> = {
-  "Role-playing (RPG)": "RPG",
-  Adventure: "アクション",
-  Action: "アクション",
-  Platform: "アクション",
-  "Hack and slash/Beat 'em up": "アクション",
-  Fighting: "アクション",
-  Shooter: "シューティング",
-  Sport: "スポーツ",
-  Racing: "スポーツ",
-  Puzzle: "パズル",
-  "Quiz/Trivia": "パズル",
-  Music: "アクション",
-  Simulator: "スポーツ",
-  Strategy: "RPG",
-  "Real Time Strategy (RTS)": "RPG",
-  Tactical: "RPG",
-  "Turn-based strategy (TBS)": "RPG",
-  Indie: "アクション",
-  Arcade: "アクション",
-};
-
-const DEFAULT_CATEGORY: GameCategory = "アクション";
-
-function mapGenres(genres: Array<{ name?: string | null }> | null | undefined): GameCategory[] {
-  if (!genres) {
-    return [DEFAULT_CATEGORY];
-  }
-  const mapped = genres
-    .map((genre) => {
-      const name = genre?.name;
-      if (!name) return undefined;
-      return GENRE_TO_CATEGORY[name] ?? DEFAULT_CATEGORY;
-    })
-    .filter((category): category is GameCategory => Boolean(category));
-  if (mapped.length === 0) {
-    return [DEFAULT_CATEGORY];
-  }
-  return Array.from(new Set(mapped));
-}
 
 export async function GET() {
   try {
     const supabase = getSupabaseServiceRoleClient();
     const { data: featuredRows } = await supabase
       .from("featured_games")
-      .select("igdb_id, display_name, visible_on_home, visible_on_category, sort_order")
+      .select(
+        "igdb_id, display_name, visible_on_home, visible_on_category, sort_order, is_new_release, is_popular, is_recommended"
+      )
       .order("sort_order", { ascending: true, nullsFirst: false });
 
     const ids = (featuredRows ?? [])
@@ -85,7 +50,7 @@ export async function GET() {
 
     const igdbResponse = await igdbRequest<RawGame[]>("games", igdbQuery);
 
-    const map = new Map<number, (typeof featuredRows)[number]>();
+    const map = new Map<number, NonNullable<typeof featuredRows>[number]>();
     (featuredRows ?? []).forEach((row) => {
       map.set(Number(row.igdb_id), row);
     });
@@ -100,6 +65,10 @@ export async function GET() {
         summary: game.summary ?? undefined,
         visibleOnHome: config?.visible_on_home ?? false,
         visibleOnCategory: config?.visible_on_category ?? false,
+        featuredNewRelease: config?.is_new_release ?? false,
+        featuredPopular: config?.is_popular ?? false,
+        featuredRecommended: config?.is_recommended ?? false,
+        platforms: mapPlatforms(game.platforms ?? null),
         displayName: config?.display_name ?? null,
         sortOrder: config?.sort_order ?? null,
       } satisfies Game;
@@ -137,6 +106,9 @@ export async function POST(request: Request) {
         display_name: body.displayName ?? null,
         visible_on_home: Boolean(body.visibleOnHome ?? false),
         visible_on_category: Boolean(body.visibleOnCategory ?? false),
+        is_new_release: Boolean(body.featuredNewRelease ?? false),
+        is_popular: Boolean(body.featuredPopular ?? false),
+        is_recommended: Boolean(body.featuredRecommended ?? false),
         sort_order: typeof body.sortOrder === "number" ? body.sortOrder : null,
       };
 
@@ -183,6 +155,9 @@ export async function POST(request: Request) {
           display_name: body.displayName ?? null,
           visible_on_home: Boolean(body.visibleOnHome ?? true),
           visible_on_category: Boolean(body.visibleOnCategory ?? true),
+          is_new_release: Boolean(body.featuredNewRelease ?? false),
+          is_popular: Boolean(body.featuredPopular ?? false),
+          is_recommended: Boolean(body.featuredRecommended ?? false),
           sort_order: typeof body.sortOrder === "number" ? body.sortOrder : null,
         },
         { onConflict: "igdb_id" }

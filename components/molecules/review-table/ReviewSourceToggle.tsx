@@ -42,7 +42,7 @@ export const ReviewSourceToggle = ({ value, onChange }: ReviewSourceToggleProps)
     p="1"
   >
     <HStack
-      spacing={2}
+      gap={2}
       bg="rgba(32, 32, 32, 0.95)"
       borderRadius="full"
       px={2.5}
@@ -56,7 +56,6 @@ export const ReviewSourceToggle = ({ value, onChange }: ReviewSourceToggleProps)
             key={key}
             onClick={() => onChange(key)}
             variant="solid"
-            leftIcon={renderIcon(key, active)}
             borderRadius="full"
             px={4}
             py={2}
@@ -75,8 +74,11 @@ export const ReviewSourceToggle = ({ value, onChange }: ReviewSourceToggleProps)
               color: theme.activeColor,
             }}
             transition="all 0.2s ease"
+            display="inline-flex"
+            alignItems="center"
             gap={2.5}
           >
+            {renderIcon(key, active)}
             {tabLabels[key]}
           </Button>
         );

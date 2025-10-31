@@ -195,7 +195,8 @@ export function QuickReviewForm() {
         boxShadow: "0 22px 60px rgba(0, 0, 0, 0.5)",
       }}
     >
-      <Stack spacing={4} as="form" onSubmit={handleSubmit}>
+      <Box as="form" onSubmit={handleSubmit as unknown as React.FormEventHandler<HTMLDivElement>}>
+        <Stack gap={4}>
             <Field.Root
               invalid={Boolean(errors.userName)}
               disabled={!supabaseConfigured}
@@ -234,7 +235,7 @@ export function QuickReviewForm() {
               gap={2}
             >
               <Field.Label color="rgba(255, 255, 255, 0.85)">評価</Field.Label>
-              <Stack direction="row" align="center" spacing={3}>
+              <Stack direction="row" align="center" gap={3}>
                 <RatingStars
                   value={formState.rating}
                   precision={1}
@@ -293,7 +294,7 @@ export function QuickReviewForm() {
               </Text>
             </Field.Root>
 
-        <Button
+            <Button
               type="submit"
               borderRadius="999px"
               border="1px solid rgba(255, 255, 255, 0.24)"
@@ -304,14 +305,15 @@ export function QuickReviewForm() {
                 color: "rgba(255, 255, 255, 0.98)",
               }}
               _active={{ bg: "rgba(255, 255, 255, 0.16)" }}
-              isLoading={submitting}
-              isDisabled={!gameId || !supabaseConfigured}
-              leftIcon={<Icon as={FiSend} />}
+              loading={submitting}
+              disabled={!gameId || !supabaseConfigured}
             >
-        レビューを投稿
-        </Button>
+              <Icon as={FiSend} />
+              レビューを投稿
+            </Button>
+          </Stack>
 
-        <Stack spacing={1} pt={2} borderTop="1px solid rgba(255, 255, 255, 0.08)">
+          <Stack gap={1} pt={2} borderTop="1px solid rgba(255, 255, 255, 0.08)">
           <Text color="rgba(255,255,255,0.7)" fontSize="sm">
             投稿されたレビューは管理者の承認後に表示されます。
           </Text>
@@ -335,7 +337,7 @@ export function QuickReviewForm() {
             </Text>
           )}
         </Stack>
-      </Stack>
+      </Box>
     </Box>
   );
 }
