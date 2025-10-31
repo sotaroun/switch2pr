@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CategoryTemplate from "@/components/templates/CategoryPage/CategoryTemplate";
 import OverlayComments from "@/components/organisms/CommentSection/OverlayComments";
@@ -11,11 +11,45 @@ import { Game, GameCategory, ALL_GAME_CATEGORIES } from "@/types/game";
 
 const CategoryPage: React.FC = () => {
   const router = useRouter();
-  const isPageLoading = usePageLoad(); // ページ読み込み状態
+  const isPageLoading = usePageLoad();
   const [selectedCategories, setSelectedCategories] = useState<GameCategory[]>([
-    ...ALL_GAME_CATEGORIES
+    ...ALL_GAME_CATEGORIES,
   ]);
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);
+  const [games, setGames] = useState<Game[]>([]);
+  const [gamesLoading, setGamesLoading] = useState(true);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setGamesLoading(true);
+    void (async () => {
+      try {
+        const response = await fetch("/api/games", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`failed: ${response.status}`);
+        }
+        const json = (await response.json()) as Game[];
+        const categorized = json.filter((game) => game.visibleOnCategory !== false);
+        if (categorized.length > 0) {
+          setGames(categorized);
+        } else {
+          setGames(json.slice(0, 8));
+        }
+      } catch (error) {
+        console.error("Failed to fetch games for category", error);
+        setGames([]);
+      } finally {
+        setGamesLoading(false);
+      }
+    })();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
   // オーバーレイコメント機能
   const fetchComments = useCallback((gameId: string) => {
@@ -29,20 +63,12 @@ const CategoryPage: React.FC = () => {
     totalLanes: 20,
   });
 
-  const allGames: Game[] = useMemo(() => [
-    { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },
-    { id: '2', title: 'スプラトゥーン3', categories: ['シューター'] },
-    { id: '3', title: 'マリオカート8 デラックス', categories: ['スポーツ'] },
-    { id: '4', title: 'ぷよぷよテトリス2', categories: ['パズル'] },
-    { id: '5', title: 'ベヨネッタ3', categories: ['アクション'] },
-  ], []);
-
   const filteredGames = useMemo(() => {
     if (selectedCategories.length === 0) return [];
-    return allGames.filter(game => 
+    return games.filter((game) =>
       game.categories.some(category => selectedCategories.includes(category))
     );
-  }, [selectedCategories, allGames]);
+  }, [selectedCategories, games]);
 
   const handleCategoryToggle = useCallback((category: GameCategory) => {
     setSelectedCategories(prev => {
@@ -78,11 +104,10 @@ const CategoryPage: React.FC = () => {
 
   return (
     <>
-      {/* ページ全体のローディング */}
-      <PageLoader isLoading={isPageLoading} />
+      <PageLoader isLoading={isPageLoading || gamesLoading} />
       
       <CategoryTemplate
-        games={allGames}
+        games={games}
         categories={ALL_GAME_CATEGORIES}
         selectedCategories={selectedCategories}
         filteredGames={filteredGames}

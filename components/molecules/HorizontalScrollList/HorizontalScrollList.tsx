@@ -1,11 +1,11 @@
 import React, { memo, useRef, useEffect, useMemo } from 'react';
-import { Box } from "@chakra-ui/react";
+import { Box, Spinner } from "@chakra-ui/react";
 import { Game } from "@/types/game";
 import GameCard from "../GameCard/GameCard";
 import CardSkeleton from "@/components/atoms/loading/CardSkeleton";
 import ScrollButton from "@/components/atoms/buttons/ScrollButton";
 import { useHorizontalScroll } from "@/hooks/ui/useHorizontalScroll";
-import { DEFAULT_SCROLL_CONFIG, HORIZONTAL_SCROLL_UI } from "./config";
+import { DEFAULT_SCROLL_CONFIG } from "./config";
 
 interface HorizontalScrollListProps {
   games: Game[];
@@ -15,6 +15,9 @@ interface HorizontalScrollListProps {
   isMobile?: boolean;
   onGameHover?: (gameId: string) => void;
   onGameLeave?: () => void;
+  onEndReached?: () => void;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
 }
 
 /**
@@ -36,7 +39,10 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
   onGameClick,
   isMobile = false,
   onGameHover,
-  onGameLeave
+  onGameLeave,
+  onEndReached,
+  hasMore = false,
+  isLoadingMore = false,
 }) => {
   const { 
     scrollRef, 
@@ -48,6 +54,13 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [centerIndex, setCenterIndex] = React.useState(1);
+  const isMountedRef = useRef(false);
+  const cardWidth = useMemo(() => {
+    if (!visibleCards || visibleCards <= 0) {
+      return "200px";
+    }
+    return `calc((100% - ${(visibleCards - 1) * DEFAULT_SCROLL_CONFIG.gap}px) / ${visibleCards})`;
+  }, [visibleCards]);
 
   /**
    * モバイル時のスワイプ処理
@@ -93,6 +106,38 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
       container.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isMobile, games.length, scrollLeft, scrollRight]);
+
+  useEffect(() => {
+    if (!onEndReached || !scrollRef.current) return;
+    const node = scrollRef.current;
+    const threshold = 200;
+
+    const handleScroll = () => {
+      if (!hasMore || isLoadingMore) return;
+      if (node.scrollWidth - (node.scrollLeft + node.clientWidth) <= threshold) {
+        onEndReached();
+      }
+    };
+
+    node.addEventListener("scroll", handleScroll);
+    return () => {
+      node.removeEventListener("scroll", handleScroll);
+    };
+  }, [onEndReached, hasMore, isLoadingMore, scrollRef]);
+
+  useEffect(() => {
+    if (!onEndReached || !hasMore || isLoadingMore) return;
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      if (games.length === 0) {
+        onEndReached();
+      }
+      return;
+    }
+    if (games.length > 0 && games.length <= visibleCards) {
+      onEndReached();
+    }
+  }, [games.length, visibleCards, hasMore, isLoadingMore, onEndReached]);
 
   return (
     <Box
@@ -154,18 +199,17 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
         {isLoading ? (
           <CardSkeleton count={visibleCards} />
         ) : (
-          games.map((game, index) => {
-            const isCenter = isMobile && index === centerIndex;
-            // カード幅を計算（画面幅に応じて動的に）
-            const cardWidth = `calc((100% - ${(visibleCards - 1) * DEFAULT_SCROLL_CONFIG.gap}px) / ${visibleCards})`;
-            
-            return (
-              <Box
-                key={game.id}
-                flex={`0 0 ${cardWidth}`}
-                minW={cardWidth}
-                maxW={cardWidth}
-              >
+          <>
+            {games.map((game, index) => {
+              const isCenter = isMobile && index === centerIndex;
+              
+              return (
+                <Box
+                  key={game.id}
+                  flex={`0 0 ${cardWidth}`}
+                  minW={cardWidth}
+                  maxW={cardWidth}
+                >
                 <GameCard
                   title={game.title}
                   categories={game.categories}
@@ -187,7 +231,21 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
                 />
               </Box>
             );
-          })
+            })}
+            {isLoadingMore && hasMore && (
+              <Box
+                key="loader"
+                flex={`0 0 ${cardWidth}`}
+                minW={cardWidth}
+                maxW={cardWidth}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                {isLoadingMore ? <Spinner /> : null}
+              </Box>
+            )}
+          </>
         )}
       </Box>
 

@@ -104,6 +104,29 @@ export function isValidGameCategory(value: string): value is GameCategory {
   return ALL_GAME_CATEGORIES.includes(value as GameCategory);
 }
 
+export type GamePlatform =
+  | "Nintendo Switch"
+  | "PlayStation 5"
+  | "PlayStation 4"
+  | "Xbox Series X|S"
+  | "Xbox One"
+  | "PC"
+  | "Steam Deck"
+  | "Mobile"
+  | "その他";
+
+export const ALL_GAME_PLATFORMS: readonly GamePlatform[] = [
+  "Nintendo Switch",
+  "PlayStation 5",
+  "PlayStation 4",
+  "Xbox Series X|S",
+  "Xbox One",
+  "PC",
+  "Steam Deck",
+  "Mobile",
+  "その他",
+] as const;
+
 /**
  * ゲームの基本情報を表す型
  */
@@ -118,6 +141,22 @@ export interface Game {
   iconUrl?: string;
   /** 概要文（オプション） */
   summary?: string;
+  /** トップページに表示するか */
+  visibleOnHome?: boolean;
+  /** カテゴリページに表示するか */
+  visibleOnCategory?: boolean;
+  /** 表示名称の上書き */
+  displayName?: string | null;
+  /** 並び順 */
+  sortOrder?: number | null;
+  /** ホーム新作セクションに出すか */
+  featuredNewRelease?: boolean;
+  /** ホーム人気セクションに出すか */
+  featuredPopular?: boolean;
+  /** ホームおすすめセクションに出すか */
+  featuredRecommended?: boolean;
+  /** 対応プラットフォーム */
+  platforms?: GamePlatform[];
 }
 
 /**

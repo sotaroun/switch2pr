@@ -10,23 +10,27 @@ const renderTruncatedLink = (
   color: string,
   maxWidth: string = "240px"
 ) => (
-  <Text
-    as="a"
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    color={color}
-    fontSize="sm"
-    fontWeight="semibold"
-    textDecoration="underline"
+  <Box
     maxW={maxWidth}
     overflow="hidden"
     display="-webkit-box"
     style={{ WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
-    title={text}
   >
-    {text}
-  </Text>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        color,
+        fontSize: "0.875rem",
+        fontWeight: 600,
+        textDecoration: "underline",
+      }}
+      title={text}
+    >
+      {text}
+    </a>
+  </Box>
 );
 
 export const baseColumnsMap: ColumnsMap = {

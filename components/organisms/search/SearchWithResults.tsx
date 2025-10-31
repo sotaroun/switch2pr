@@ -3,13 +3,7 @@ import { Box, Stack, Heading, Text, Grid } from "@chakra-ui/react";
 import { useRouter } from 'next/navigation';
 import SearchBar from "@/components/molecules/SearchBox/SearchBar";
 import GameCard from "@/components/molecules/GameCard/GameCard";
-
-interface Game {
-  id: string;
-  title: string;
-  categories: string[];
-  iconUrl?: string;
-}
+import type { Game } from "@/types/game";
 
 interface SearchWithResultsProps {
   games: Game[];
