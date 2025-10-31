@@ -126,134 +126,244 @@ export const Header = ({ menus = [] }: HeaderProps) => {
         </ChakraLink>
 
         {/* デスクトップメニュー */}
-        <Flex gap={8} display={{ base: "none", md: "flex" }}>
-          {menus.map((menu: any) => {
-            const firstHref =
-              (menu && (menu.href as string)) ??
-              (menu?.menuLinks && menu.menuLinks[0]?.href) ??
-              "#";
+<Flex
+  gap={10}
+  display={{ base: "none", md: "flex" }}
+  align="center"
+  position="relative"
+>
+  <style jsx global>{`
+    /* 下線が発光するアニメーション */
+    @keyframes neonLine {
+      0% {
+        box-shadow: 0 0 2px rgba(229, 9, 20, 0.2);
+      }
+      100% {
+        box-shadow: 0 0 12px rgba(229, 9, 20, 0.9);
+      }
+    }
 
-            return (
-              <Box
-                key={menu.menuLabel}
-                position="relative"
-                onMouseEnter={() => setHoveredMenu(menu.menuLabel)}
-                onMouseLeave={() => setHoveredMenu(null)}
-              >
-                <ChakraLink
-                  as={NextLink}
-                  href={firstHref}
-                  fontSize="md"
-                  fontWeight="500"
-                  color="white"
-                  _hover={{ textDecoration: "none", color: "#E50914" }}
-                >
-                  {menu.menuLabel}
-                </ChakraLink>
+    /* 文字のチラつき（ネオン的ノイズ） */
+    @keyframes flicker {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+      }
+      20%, 24%, 55% {
+        opacity: 0.6;
+      }
+    }
+  `}</style>
 
-                <MotionBox
-                  position="absolute"
-                  bottom="-6px"
-                  left="0"
-                  height="2px"
-                  width={hoveredMenu === menu.menuLabel ? "100%" : "0%"}
-                  bg="#E50914"
-                  transition={{ duration: 0.18 }}
-                />
-              </Box>
-            );
-          })}
-        </Flex>
+  {menus.map((menu: any, i: number) => {
+    const firstHref =
+      (menu && (menu.href as string)) ??
+      (menu?.menuLinks && menu.menuLinks[0]?.href) ??
+      "#";
+
+    return (
+      <MotionBox
+        key={menu.menuLabel}
+        position="relative"
+        onMouseEnter={() => setHoveredMenu(menu.menuLabel)}
+        onMouseLeave={() => setHoveredMenu(null)}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          delay: i * 0.1, // 少しずつフェードイン
+          duration: 0.4,
+        }}
+      >
+        <ChakraLink
+          as={NextLink}
+          href={firstHref}
+          fontSize="lg"
+          fontWeight="600"
+          letterSpacing="0.05em"
+          color="white"
+          textShadow="0 0 8px rgba(255,255,255,0.6)"
+          animation="flicker 4s infinite"
+          _hover={{
+            color: "#E50914",
+            textShadow: "0 0 20px rgba(229,9,20,1)",
+            transform: "scale(1.05)",
+          }}
+          transition="all 0.25s ease"
+        >
+          {menu.menuLabel}
+        </ChakraLink>
+
+        {/* 下線（ネオンアニメーション） */}
+        <MotionBox
+          position="absolute"
+          bottom="-6px"
+          left="0"
+          height="2px"
+          width={hoveredMenu === menu.menuLabel ? "100%" : "0%"}
+          bg="#E50914"
+          borderRadius="2px"
+          transition={{ duration: 0.25 }}
+          style={{
+            animation:
+              hoveredMenu === menu.menuLabel
+                ? "neonLine 0.8s alternate infinite"
+                : "none",
+          }}
+        />
+      </MotionBox>
+    );
+  })}
+</Flex>
 
         {/* モバイル：ハンバーガー */}
-        <Box display={{ base: "block", md: "none" }}>
-          <IconButton
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            onClick={() => setMobileOpen((s) => !s)}
-            variant="ghost"
-            _hover={{ bg: "rgba(255,255,255,0.04)" }}
-            fontSize="20px"
-          >
-            {mobileOpen ? <XIcon /> : <MenuIcon />}
-          </IconButton>
-        </Box>
+<Box display={{ base: "block", md: "none" }}>
+  <IconButton
+    aria-label={mobileOpen ? "Close menu" : "Open menu"}
+    onClick={() => setMobileOpen((s) => !s)}
+    variant="ghost"
+    _hover={{ bg: "rgba(255,255,255,0.08)", color: "#fff" }}
+    color="#ddd" 
+    fontSize="22px"
+    transition="all 0.3s ease"
+  >
+    {mobileOpen ? <XIcon /> : <MenuIcon />}
+  </IconButton>
+</Box>
       </Flex>
 
-      {/* モバイルメニュー */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <MotionBox
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            position="absolute"
-            top="80px"
-            right="0"
-            left="0"
-            bg="black"
-            zIndex={50}
-            borderTop="1px solid rgba(255,255,255,0.04)"
-            px={4}
-            py={6}
-          >
-            {menus.map((menu: any) => {
-              const firstHref =
-                (menu && (menu.href as string)) ??
-                (menu?.menuLinks && menu.menuLinks[0]?.href) ??
-                "#";
+{/* モバイルメニュー */}
+<AnimatePresence>
+  {mobileOpen && (
+    <MotionBox
+      initial={{ opacity: 0, y: -30, scale: 0.98 }}
+      animate={{
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        boxShadow: "0 0 25px rgba(229, 9, 20, 0.4)",
+      }}
+      exit={{ opacity: 0, y: -20, scale: 0.97 }}
+      transition={{
+        duration: 0.6,
+        ease: [0.22, 1, 0.36, 1], // イージング曲線で自然な加減速
+      }}
+      position="absolute"
+      top="80px"
+      right="0"
+      left="0"
+      bg="rgba(10, 10, 10, 0.92)"
+      backdropFilter="blur(10px)"
+      zIndex={50}
+      borderTop="1px solid rgba(255, 255, 255, 0.08)"
+      px={4}
+      py={6}
+      borderRadius="md"
+      overflow="hidden"
+    >
+      {/* 背景の光り揺らめき（疑似ネオンパルス） */}
+      <Box
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+        bgGradient="radial(rgba(229,9,20,0.25), transparent 70%)"
+        animation="pulse 3s infinite alternate"
+        pointerEvents="none"
+      />
 
-              return menu.menuLinks ? (
-                <Box key={menu.menuLabel} mb={4}>
-                  <ChakraLink
-                    as={NextLink}
-                    href={firstHref}
-                    fontSize="lg"
-                    display="block"
-                    mb={2}
-                    onClick={() => setMobileOpen(false)}
-                    color="white"
-                    _hover={{ color: "#E50914" }}
-                  >
-                    {menu.menuLabel}
-                  </ChakraLink>
+      <style jsx global>{`
+        @keyframes pulse {
+          0% {
+            opacity: 0.1;
+            transform: scale(1);
+          }
+          100% {
+            opacity: 0.4;
+            transform: scale(1.05);
+          }
+        }
+      `}</style>
 
-                  <Box pl={2}>
-                    {menu.menuLinks.map((l: any) => (
-                      <ChakraLink
-                        as={NextLink}
-                        key={l.href}
-                        href={l.href}
-                        display="block"
-                        mb={2}
-                        fontSize="sm"
-                        onClick={() => setMobileOpen(false)}
-                        color="white"
-                        _hover={{ color: "#E50914" }}
-                      >
-                        {l.label}
-                      </ChakraLink>
-                    ))}
-                  </Box>
-                </Box>
-              ) : (
-                <Box key={menu.menuLabel} mb={4}>
-                  <ChakraLink
-                    as={NextLink}
-                    href={firstHref}
-                    fontSize="lg"
-                    display="block"
-                    onClick={() => setMobileOpen(false)}
-                    color="white"
-                    _hover={{ color: "#E50914" }}
-                  >
-                    {menu.menuLabel}
-                  </ChakraLink>
-                </Box>
-              );
-            })}
-          </MotionBox>
-        )}
-      </AnimatePresence>
+      {menus.map((menu: any) => {
+        const firstHref =
+          (menu && (menu.href as string)) ??
+          (menu?.menuLinks && menu.menuLinks[0]?.href) ??
+          "#";
+
+        return menu.menuLinks ? (
+          <Box key={menu.menuLabel} mb={5}>
+            <ChakraLink
+              as={NextLink}
+              href={firstHref}
+              fontSize="xl"
+              display="block"
+              mb={2}
+              onClick={() => setMobileOpen(false)}
+              color="white"
+              fontWeight="bold"
+              letterSpacing="0.05em"
+              textShadow="0 0 10px rgba(255,255,255,0.7)"
+              _hover={{
+                color: "#E50914",
+                textShadow: "0 0 20px rgba(229,9,20,1)",
+                transform: "scale(1.05)",
+              }}
+              transition="all 0.3s ease"
+            >
+              {menu.menuLabel}
+            </ChakraLink>
+
+            <Box pl={3}>
+              {menu.menuLinks.map((l: any) => (
+                <ChakraLink
+                  as={NextLink}
+                  key={l.href}
+                  href={l.href}
+                  display="block"
+                  mb={2}
+                  fontSize="md"
+                  onClick={() => setMobileOpen(false)}
+                  color="whiteAlpha.800"
+                  textShadow="0 0 6px rgba(255,255,255,0.4)"
+                  _hover={{
+                    color: "#E50914",
+                    textShadow: "0 0 15px rgba(229,9,20,0.9)",
+                    transform: "translateX(4px)",
+                  }}
+                  transition="all 0.3s ease"
+                >
+                  {l.label}
+                </ChakraLink>
+              ))}
+            </Box>
+          </Box>
+        ) : (
+          <Box key={menu.menuLabel} mb={5}>
+            <ChakraLink
+              as={NextLink}
+              href={firstHref}
+              fontSize="xl"
+              display="block"
+              onClick={() => setMobileOpen(false)}
+              color="white"
+              fontWeight="bold"
+              letterSpacing="0.05em"
+              textShadow="0 0 10px rgba(255,255,255,0.7)"
+              _hover={{
+                color: "#E50914",
+                textShadow: "0 0 20px rgba(229,9,20,1)",
+                transform: "scale(1.05)",
+              }}
+              transition="all 0.3s ease"
+            >
+              {menu.menuLabel}
+            </ChakraLink>
+          </Box>
+        );
+      })}
+    </MotionBox>
+  )}
+</AnimatePresence>
     </header>
   );
 };

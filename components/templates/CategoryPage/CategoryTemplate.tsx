@@ -34,6 +34,10 @@ interface CategoryTemplateProps {
   onGameHover?: (gameId: string) => void;
   /** ゲームカードホバー解除時のハンドラー（オプション） */
   onGameLeave?: () => void;
+
+  isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   
   // カスタマイズオプション
   /** ページタイトル */

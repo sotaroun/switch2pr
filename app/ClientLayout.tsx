@@ -15,7 +15,7 @@ const system = createSystem(defaultConfig, {});
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   // Netflix風ヘッダーのメニュー設定
   const menus = [
-    { menuLabel: "カテゴリ", href: "/categor" },
+    { menuLabel: "カテゴリ", href: "/category" },
     { menuLabel: "検索", href: "/search" },
   ];
 
