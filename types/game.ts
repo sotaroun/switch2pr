@@ -157,6 +157,8 @@ export interface Game {
   featuredRecommended?: boolean;
   /** 対応プラットフォーム */
   platforms?: GamePlatform[];
+  /** 初回リリース日のunix秒（ある場合） */
+  firstReleaseDate?: number | null;
 }
 
 /**

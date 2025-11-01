@@ -68,6 +68,7 @@ export async function GET() {
         featuredNewRelease: config?.is_new_release ?? false,
         featuredPopular: config?.is_popular ?? false,
         featuredRecommended: config?.is_recommended ?? false,
+        firstReleaseDate: game.first_release_date ?? null,
         platforms: mapPlatforms(game.platforms ?? null),
         displayName: config?.display_name ?? null,
         sortOrder: config?.sort_order ?? null,

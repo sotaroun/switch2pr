@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import CategoryTemplate from "@/components/templates/CategoryPage/CategoryTemplate";
 import OverlayComments from "@/components/organisms/CommentSection/OverlayComments";
@@ -18,6 +18,7 @@ const CategoryPage: React.FC = () => {
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [gamesLoading, setGamesLoading] = useState(true);
+  const prefetchedRoutesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const controller = new AbortController();
@@ -95,7 +96,17 @@ const CategoryPage: React.FC = () => {
   const handleGameHover = useCallback((gameId: string) => {
     setHoveredGameId(gameId);
     startHover();
-  }, [startHover]);
+    const route = `/game/${gameId}`;
+    if (!prefetchedRoutesRef.current.has(route)) {
+      prefetchedRoutesRef.current.add(route);
+      try {
+        router.prefetch(route);
+      } catch (error) {
+        console.warn("Failed to prefetch route", route, error);
+        prefetchedRoutesRef.current.delete(route);
+      }
+    }
+  }, [router, startHover]);
 
   const handleGameLeave = useCallback(() => {
     setHoveredGameId(null);
