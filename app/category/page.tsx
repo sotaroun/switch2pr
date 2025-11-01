@@ -7,6 +7,7 @@ import PageLoader from "@/components/organisms/Loading/PageLoader";
 import { useOverlayComments } from "@/hooks/comments/useOverlayComments";
 import { usePageLoad } from "@/hooks/usePageLoad";
 import { fetchOverlayCommentsAPI } from "@/lib/overlayComments";
+import { prefetchGameOverview } from "@/lib/api/gameOverview";
 import { Game, GameCategory, ALL_GAME_CATEGORIES } from "@/types/game";
 
 const CategoryPage: React.FC = () => {
@@ -106,6 +107,7 @@ const CategoryPage: React.FC = () => {
         prefetchedRoutesRef.current.delete(route);
       }
     }
+    void prefetchGameOverview(gameId);
   }, [router, startHover]);
 
   const handleGameLeave = useCallback(() => {
