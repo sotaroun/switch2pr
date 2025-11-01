@@ -109,17 +109,81 @@ export function isValidGameCategory(value: string): value is GameCategory {
  * （IGDBの platforms.name を参照）
  */
 export type GamePlatform =
-  | 'Nintendo Switch'
+  | 'Nintendo Switch 2' 
   | 'PlayStation 5'
-  | 'PlayStation 4'
+  | 'Mac'
+  | 'Nintendo Switch'
+  | 'Android'
+  | 'PC(Windows)'
   | 'Xbox Series X/S'
   | 'Xbox One'
-  | 'PC (Windows)'
+  | 'New Nintenendo 3DS'
+  | 'Nintendo 3DS'
+  | 'PlayStation 4'
+  | 'PlayStation Vita'
+  | 'Wii'
+  | 'Wii U'
+  | 'Playstation 3'
+  | 'Playstation Portable'
+  | 'xbox 360'
+  | 'Nintendo DSi'
+  | 'Nintendo DS'
   | 'Mac'
-  | 'Linux'
   | 'iOS'
-  | 'Android'
+  |'Game Boy Advance'
+  |'Nintendo 64'
+  |'WonderSwan'
+  |'WonderSwan Color'
+  |'Nintendo GameCube'
+  |'Playstation'
+  |'Dreamcast'
+  |'Game Boy Color'
+  |'Game Boy'
+  |'Super Famicom'
+  |'Nintendo Entertainment System'
   | 'その他';
+  
+export const ALL_GAME_PLATFORMS: readonly GamePlatform[] = [
+  'Nintendo Switch 2',
+  'PlayStation 5',
+  'Mac',
+  'Nintendo Switch',
+  'Android',
+  'PC(Windows)',
+  'Xbox Series X/S',
+  'Xbox One',
+  'New Nintenendo 3DS',
+  'Nintendo 3DS',
+  'PlayStation 4',
+  'PlayStation Vita',
+  'Wii',
+  'Wii U',
+  'Playstation 3',
+  'Playstation Portable',
+  'xbox 360',
+  'Nintendo DSi',
+  'Nintendo DS',
+  'iOS',
+  'Game Boy Advance',
+  'Nintendo 64',
+  'WonderSwan',
+  'WonderSwan Color',
+  'Nintendo GameCube',
+  'Playstation',
+  'Dreamcast',
+  'Game Boy Color',
+  'Game Boy',
+  'Super Famicom',
+  'Nintendo Entertainment System',
+  'その他'
+] as const;
+
+/**
+ * プラットフォームが有効かチェックする型ガード
+ */
+export function isValidGamePlatform(value: string): value is GamePlatform {
+  return ALL_GAME_PLATFORMS.includes(value as GamePlatform);
+}
 
 /**
  * 開発・販売会社の型定義
@@ -159,3 +223,4 @@ export interface SearchResult {
   id: string;
   title: string;
 }
+

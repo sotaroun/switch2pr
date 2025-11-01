@@ -6,15 +6,15 @@ import OverlayComments from "@/components/organisms/CommentSection/OverlayCommen
 import PageLoader from "@/components/organisms/Loading/PageLoader";
 import { usePageLoad } from "@/hooks/usePageLoad";
 import { fetchOverlayCommentsAPI } from "@/lib/overlayComments";
-import { Game, GameCategory, ALL_GAME_CATEGORIES } from "@/types/game";
+import { Game, GameCategory, GamePlatform, ALL_GAME_CATEGORIES, ALL_GAME_PLATFORMS } from "@/types/game";
 import type { OverlayComment, FloatingComment } from "@/types/overlayComment";
 
 const FALLBACK_GAMES: Game[] = [
-  { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },
-  { id: '2', title: 'スプラトゥーン3', categories: ['シューター'] },
-  { id: '3', title: 'マリオカート8 デラックス', categories: ['スポーツ'] },
-  { id: '4', title: 'ぷよぷよテトリス2', categories: ['パズル'] },
-  { id: '5', title: 'ベヨネッタ3', categories: ['アクション'] },
+  { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'], platforms: ['Nintendo Switch'] },
+  { id: '2', title: 'スプラトゥーン3', categories: ['シューター'], platforms: ['Nintendo Switch'] },
+  { id: '3', title: 'マリオカート8 デラックス', categories: ['スポーツ'], platforms: ['Nintendo Switch'] },
+  { id: '4', title: 'ぷよぷよテトリス2', categories: ['パズル'], platforms: ['Nintendo Switch', 'PlayStation 4'] },
+  { id: '5', title: 'ベヨネッタ3', categories: ['アクション'], platforms: ['Nintendo Switch'] },
 ];
 
 const CategoryPage: React.FC = () => {
@@ -27,9 +27,10 @@ const CategoryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   // カテゴリフィルター
-  const [selectedCategories, setSelectedCategories] = useState<GameCategory[]>([
-    ...ALL_GAME_CATEGORIES
-  ]);
+  const [selectedCategories, setSelectedCategories] = useState<GameCategory[]>([]);
+  
+  // プラットフォームフィルター
+  const [selectedPlatforms, setSelectedPlatforms] = useState<GamePlatform[]>([]);
   
   // オーバーレイコメント
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);
@@ -127,14 +128,27 @@ const CategoryPage: React.FC = () => {
 
   /**
    * フィルター済みゲーム一覧
+   * カテゴリとプラットフォームの両方で絞り込み
    */
   const filteredGames = useMemo(() => {
-    if (selectedCategories.length === 0) return [];
+    // 両方とも未選択の場合は空配列
+    if (selectedCategories.length === 0 && selectedPlatforms.length === 0) {
+      return [];
+    }
     
-    return games.filter(game =>
-      game.categories.some(category => selectedCategories.includes(category))
-    );
-  }, [selectedCategories, games]);
+    return games.filter(game => {
+      // カテゴリチェック（選択されている場合のみ）
+      const categoryMatch = selectedCategories.length === 0 || 
+        game.categories.some(category => selectedCategories.includes(category));
+      
+      // プラットフォームチェック（選択されている場合のみ）
+      const platformMatch = selectedPlatforms.length === 0 || 
+        (game.platforms && game.platforms.some(platform => selectedPlatforms.includes(platform)));
+      
+      // 両方の条件を満たす（AND条件）
+      return categoryMatch && platformMatch;
+    });
+  }, [selectedCategories, selectedPlatforms, games]);
 
   /**
    * カテゴリ選択切り替え
@@ -150,18 +164,25 @@ const CategoryPage: React.FC = () => {
   }, []);
 
   /**
-   * カテゴリリセット
+   * プラットフォーム選択切り替え
    */
-  const handleReset = useCallback(() => {
-    setSelectedCategories([...ALL_GAME_CATEGORIES]);
+  const handlePlatformToggle = useCallback((platform: GamePlatform) => {
+    setSelectedPlatforms(prev => {
+      if (prev.includes(platform)) {
+        return prev.filter(p => p !== platform);
+      } else {
+        return [...prev, platform];
+      }
+    });
   }, []);
 
   /**
-   * 検索結果選択
+   * 全解除（カテゴリ＋プラットフォーム両方）
    */
-  const handleSelectGame = useCallback((gameId: string) => {
-    router.push(`/game/${gameId}`);
-  }, [router]);
+  const handleResetAll = useCallback(() => {
+    setSelectedCategories([]);
+    setSelectedPlatforms([]);
+  }, []);
 
   /**
    * ゲームクリック
@@ -283,13 +304,14 @@ const CategoryPage: React.FC = () => {
       <PageLoader isLoading={isPageLoading} />
 
       <CategoryTemplate
-        games={games}
         categories={ALL_GAME_CATEGORIES}
         selectedCategories={selectedCategories}
+        platforms={ALL_GAME_PLATFORMS}
+        selectedPlatforms={selectedPlatforms}
         filteredGames={filteredGames}
         onCategoryToggle={handleCategoryToggle}
-        onReset={handleReset}
-        onSelectGame={handleSelectGame}
+        onPlatformToggle={handlePlatformToggle}
+        onResetAll={handleResetAll}
         onGameClick={handleGameClick}
         onGameHover={handleGameHover}
         onGameLeave={handleGameLeave}

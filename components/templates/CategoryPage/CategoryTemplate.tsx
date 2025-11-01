@@ -4,30 +4,35 @@ import {
   Container, 
   Stack,
   Heading, 
-  Text
+  Text,
+  Flex
 } from "@chakra-ui/react";
+import { MdClear } from "react-icons/md";
 import CategoryFilterOrg from "@/components/organisms/search/CategoryFilter";
-import SearchSection from "@/components/organisms/search/SearchSection";
+import PlatformFilterOrg from "@/components/organisms/search/PlatformFilter";
+import ActionButton from "@/components/atoms/buttons/ActionButton";
 import GameGrid from "@/components/organisms/game/GameGrid";
-import { Game, GameCategory } from "@/types/game";
+import { Game, GameCategory, GamePlatform } from "@/types/game";
 
 interface CategoryTemplateProps {
-  /** 全ゲーム一覧（検索用） */
-  games: Game[];
   /** 利用可能なカテゴリ一覧（厳密な型） */
   categories: readonly GameCategory[];
   /** 選択中のカテゴリ（厳密な型） */
   selectedCategories: GameCategory[];
+  /** 利用可能なプラットフォーム一覧 */
+  platforms: readonly GamePlatform[];
+  /** 選択中のプラットフォーム */
+  selectedPlatforms: GamePlatform[];
   /** フィルター済みゲーム一覧 */
   filteredGames: Game[];
   
   // イベントハンドラー
   /** カテゴリ選択切り替え時のハンドラー */
   onCategoryToggle: (category: GameCategory) => void;
-  /** カテゴリリセット時のハンドラー */
-  onReset: () => void;
-  /** 検索結果選択時のハンドラー */
-  onSelectGame: (gameId: string) => void;
+  /** プラットフォーム選択切り替え時のハンドラー */
+  onPlatformToggle: (platform: GamePlatform) => void;
+  /** 全解除時のハンドラー */
+  onResetAll: () => void;
   /** ゲームカードクリック時のハンドラー */
   onGameClick: (gameId: string) => void;
   /** ゲームカードホバー時のハンドラー（オプション） */
@@ -48,38 +53,33 @@ interface CategoryTemplateProps {
 
 /**
  * カテゴリページ全体のレイアウトを提供するTemplateコンポーネント
- * オーバーレイコメント対応版
- * 
- * @example
- * ```tsx
- * <CategoryTemplate
- *   games={allGames}
- *   categories={ALL_GAME_CATEGORIES}
- *   selectedCategories={selected}
- *   filteredGames={filtered}
- *   onCategoryToggle={handleToggle}
- *   onReset={handleReset}
- *   onSelectGame={handleSelectGame}
- *   onGameClick={handleGameClick}
- *   onGameHover={handleGameHover}
- *   onGameLeave={handleGameLeave}
- * />
- * ```
+ * カテゴリ・プラットフォーム両方でフィルタリング可能
  */
 const CategoryTemplate: React.FC<CategoryTemplateProps> = memo(({
-  games,
   categories,
   selectedCategories,
+  platforms,
+  selectedPlatforms,
   filteredGames,
   onCategoryToggle,
-  onReset,
-  onSelectGame,
+  onPlatformToggle,
+  onResetAll,
   onGameClick,
   onGameHover,
   onGameLeave,
   pageTitle = "カテゴリから探す",
-  pageDescription = "お好みのジャンルでゲームを絞り込み"
+  pageDescription = "お好みのジャンル・プラットフォームでゲームを絞り込み"
 }) => {
+  /**
+   * キーボード操作（Enter/Space）の処理
+   */
+  const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      action();
+    }
+  };
+
   return (
     <Box minH="100vh" bg="gray.900" color="white">
       <Container maxW="90%" py={8}>
@@ -102,20 +102,55 @@ const CategoryTemplate: React.FC<CategoryTemplateProps> = memo(({
               {pageDescription}
             </Text>
           </Stack>
-          
-          {/* 検索セクション */}
-          <SearchSection
-            games={games}
-            onSelectGame={onSelectGame}
-          />
 
-          {/* カテゴリフィルター */}
-          <CategoryFilterOrg
-            categories={categories}
-            selectedCategories={selectedCategories}
-            onCategoryToggle={onCategoryToggle}
-            onReset={onReset}
-          />
+          {/* カテゴリセクション */}
+          <Box>
+            <Heading 
+              as="h2" 
+              size="lg" 
+              color="white" 
+              mb={6}
+              textAlign="center"
+            >
+              カテゴリ選択
+            </Heading>
+            <CategoryFilterOrg
+              categories={categories}
+              selectedCategories={selectedCategories}
+              onCategoryToggle={onCategoryToggle}
+            />
+          </Box>
+
+          {/* プラットフォームセクション */}
+          <Box>
+            <Heading 
+              as="h2" 
+              size="lg" 
+              color="white" 
+              mb={6}
+              textAlign="center"
+            >
+              プラットフォーム選択
+            </Heading>
+            <PlatformFilterOrg
+              platforms={platforms}
+              selectedPlatforms={selectedPlatforms}
+              onPlatformToggle={onPlatformToggle}
+            />
+          </Box>
+
+          {/* 全解除ボタン */}
+          <Flex justify="center">
+            <ActionButton
+              onClick={onResetAll}
+              onKeyDown={(e) => handleKeyDown(e, onResetAll)}
+              colorScheme="red"
+              icon={MdClear}
+              ariaLabel="すべての選択を解除"
+            >
+              全解除
+            </ActionButton>
+          </Flex>
           
           {/* ゲーム一覧 */}
           <GameGrid
