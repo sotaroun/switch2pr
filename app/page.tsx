@@ -6,6 +6,7 @@ import SearchWithResults from "@/components/organisms/search/SearchWithResults";
 import HorizontalGameList from "@/components/organisms/game/HorizontalGameList";
 import OverlayComments from "@/components/organisms/CommentSection/OverlayComments";
 import { fetchOverlayCommentsAPI } from "@/lib/overlayComments";
+import { prefetchGameOverview } from "@/lib/api/gameOverview";
 import { Game } from "@/types/game";
 import type { OverlayComment, FloatingComment } from "@/types/overlayComment";
 
@@ -510,6 +511,7 @@ const handleGameHover = useCallback((gameId: string) => {
       prefetchedGameRoutesRef.current.delete(route);
     }
   }
+  void prefetchGameOverview(gameId);
 }, [router]);
 
 const handleGameLeave = useCallback(() => {
