@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { Box, Stack, Text, Flex, Badge } from "@chakra-ui/react";
 import { CATEGORY_GRADIENTS } from "./constants";
+import Image from "next/image";
 
 interface GameCardProps {
   title: string;
@@ -82,18 +83,14 @@ const GameCard: React.FC<GameCardProps> = memo(({
         h="full"
       >
         <Box
+          aria-label={title}
           bgGradient={iconUrl ? undefined : getCategoryGradient(categories)}
           backgroundImage={iconUrl ? `url(${iconUrl})` : undefined}
           backgroundSize="cover"
           backgroundPosition="center"
           rounded="lg"
-          p={4}
           h="250px"
           w="full"
-          display="flex"
-          flexDirection="column"
-          justifyContent="flex-end"
-          alignItems="center"
           position="relative"
           overflow="hidden"
           boxShadow={isCenter ? "0 14px 28px rgba(0,0,0,0.45)" : "0 6px 18px rgba(0,0,0,0.3)"}
@@ -104,59 +101,7 @@ const GameCard: React.FC<GameCardProps> = memo(({
             borderColor: "whiteAlpha.400",
             boxShadow: "0 18px 32px rgba(0,0,0,0.5)",
           }}
-        >
-          {/* グラデーションオーバーレイ */}
-          <Box
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            bgGradient="linear(to-t, blackAlpha.800, blackAlpha.0)"
-            zIndex={1}
-          />
-
-          {/* テキストコンテンツ */}
-          <Stack
-            direction="column"
-            gap={2}
-            textAlign="center"
-            w="full"
-            zIndex={2}
-          >
-            <Text
-              fontSize="sm"
-              color="whiteAlpha.700"
-              fontWeight="500"
-              textTransform="uppercase"
-              letterSpacing="wider"
-            >
-              {categories[0] || 'ゲーム'}
-            </Text>
-            <Text
-              fontSize={isCenter ? 'md' : 'sm'}
-              fontWeight="bold"
-              color="white"
-              lineHeight="tight"
-              lineClamp={isCenter ? 3 : 2}
-              transition="font-size 0.3s ease"
-            >
-              {title}
-            </Text>
-          </Stack>
-
-          {/* 非クリック可能時のオーバーレイ */}
-          {!isCenter && (
-            <Box
-              position="absolute"
-              inset={0}
-              rounded="lg"
-              bg="blackAlpha.300"
-              zIndex={3}
-              transition="background-color 0.3s ease"
-            />
-          )}
-        </Box>
+        />
       </Box>
     );
   }
@@ -187,15 +132,20 @@ const GameCard: React.FC<GameCardProps> = memo(({
             aspectRatio={1}
             bg="gray.700"
             rounded="lg"
+            position="relative"
+            overflow="hidden"
             display="flex"
             alignItems="center"
             justifyContent="center"
           >
             {iconUrl ? (
-              <img 
-                src={iconUrl} 
-                alt={title} 
-                style={{ width: '50%', height: '50%', objectFit: 'cover' }} 
+              <Image
+                src={iconUrl}
+                alt={title}
+                fill
+                sizes="(max-width: 768px) 45vw, 200px"
+                style={{ objectFit: "cover" }}
+                loading="lazy"
               />
             ) : (
               <Text fontSize="2xl">🎮</Text>

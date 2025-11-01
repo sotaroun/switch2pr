@@ -8,24 +8,121 @@ import OverlayComments from "@/components/organisms/CommentSection/OverlayCommen
 import { fetchOverlayCommentsAPI } from "@/lib/overlayComments";
 import { Game } from "@/types/game";
 import type { OverlayComment, FloatingComment } from "@/types/overlayComment";
-import { Header } from "@/components/organisms/Header/Header";
-import { headerMenus } from "@/datas/headerData";
-import { Metadata } from "next";
 
-const FALLBACK_GAMES: Game[] = [
-  { id: '1', title: 'ゼルダの伝説 ティアーズ オブ ザ キングダム', categories: ['アクション', 'RPG'] },
-  { id: '2', title: 'スプラトゥーン3', categories: ['シューター'] },
-  { id: '3', title: 'マリオカート8 デラックス', categories: ['スポーツ'] },
-  { id: '4', title: 'ぷよぷよテトリス2', categories: ['パズル'] },
-  { id: '5', title: 'ベヨネッタ3', categories: ['アクション'] },
-  { id: '6', title: 'ポケットモンスター スカーレット', categories: ['RPG'] },
-  { id: '7', title: 'スーパーマリオブラザーズ ワンダー', categories: ['アクション'] },
-  { id: '8', title: 'ピクミン4', categories: ['アクション', 'パズル'] },
-  { id: '9', title: 'ファイアーエムブレム エンゲージ', categories: ['RPG'] },
-  { id: '10', title: 'カービィのグルメフェス', categories: ['アクション'] },
+type ManufacturerConfig = {
+  id: string;
+  label: string;
+  companies: string[];
+};
+
+type ManufacturerState = {
+  items: Game[];
+  loading: boolean;
+  hasMore: boolean;
+  offset: number;
+  initialized: boolean;
+  error: string | null;
+};
+
+const MANUFACTURER_PAGE_SIZE = 30;
+
+const MANUFACTURER_CONFIGS: ManufacturerConfig[] = [
+  {
+    id: "nintendo",
+    label: "任天堂",
+    companies: [
+      "Nintendo",
+      "Nintendo EPD",
+      "Nintendo EPD Production Group No. 9",
+      "Nintendo Co., Ltd.",
+    ],
+  },
+  {
+    id: "square-enix",
+    label: "スクウェア・エニックス",
+    companies: [
+      "Square Enix",
+      "Square Enix Holdings",
+      "Square Co., Ltd.",
+    ],
+  },
+  {
+    id: "capcom",
+    label: "カプコン",
+    companies: [
+      "Capcom",
+      "Capcom Co., Ltd.",
+    ],
+  },
+  {
+    id: "bandai-namco",
+    label: "バンダイナムコ",
+    companies: [
+      "Bandai Namco Entertainment",
+      "BANDAI NAMCO Studios",
+      "Namco Bandai Games",
+    ],
+  },
 ];
 
-const HIGHLIGHT_PAGE_SIZE = 30;
+const MAX_FLOATING_COMMENTS = 10;
+const PREFETCH_COMMENT_LIMIT = 12;
+
+type ManufacturerSectionProps = {
+  config: ManufacturerConfig;
+  state: ManufacturerState;
+  attachRef: (id: string, element: HTMLDivElement | null) => void;
+  onGameClick: (gameId: string) => void;
+  onGameHover: (gameId: string) => void;
+  onGameLeave: () => void;
+  onLoadMore: (config: ManufacturerConfig) => void;
+  onRetry: (config: ManufacturerConfig) => void;
+};
+
+const ManufacturerSection: React.FC<ManufacturerSectionProps> = React.memo(
+  ({
+    config,
+    state,
+    attachRef,
+    onGameClick,
+    onGameHover,
+    onGameLeave,
+    onLoadMore,
+    onRetry,
+  }) => {
+    const handleLoadMore = useCallback(() => {
+      onLoadMore(config);
+    }, [config, onLoadMore]);
+
+    const handleRetry = useCallback(() => {
+      onRetry(config);
+    }, [config, onRetry]);
+
+    return (
+      <Box
+        ref={(element) => attachRef(config.id, element)}
+        data-manufacturer-id={config.id}
+      >
+        <HorizontalGameList
+          title={`${config.label}の新着ゲーム`}
+          games={state.items}
+          onGameClick={onGameClick}
+          onGameHover={onGameHover}
+          onGameLeave={onGameLeave}
+          isLoading={state.loading && !state.initialized}
+          hasMore={state.hasMore}
+          isLoadingMore={state.loading && state.initialized}
+          onLoadMore={state.hasMore ? handleLoadMore : undefined}
+          error={state.error ?? undefined}
+          onRetry={handleRetry}
+          emptyMessage={`${config.label}の新しいゲームが見つかりません`}
+        />
+      </Box>
+    );
+  }
+);
+
+ManufacturerSection.displayName = "ManufacturerSection";
 
 /**
  * トップページ
@@ -33,57 +130,92 @@ const HIGHLIGHT_PAGE_SIZE = 30;
  */
 const HomePage: React.FC = () => {
   const router = useRouter();
-  const [games, setGames] = useState<Game[]>(FALLBACK_GAMES);
+  const [games, setGames] = useState<Game[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isGamesLoading, setIsGamesLoading] = useState(true);
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);
   const commentsCacheRef = useRef<Record<string, OverlayComment[]>>({});
   const [floatingComments, setFloatingComments] = useState<FloatingComment[]>([]);
   const scheduledTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
-  const [newReleaseHighlights, setNewReleaseHighlights] = useState<Game[]>([]);
-  const [newReleaseHasMore, setNewReleaseHasMore] = useState(true);
-  const [newReleaseLoading, setNewReleaseLoading] = useState(false);
-  const [newReleaseInitialized, setNewReleaseInitialized] = useState(false);
-  const newReleaseOffsetRef = useRef(0);
-  const [popularHighlights, setPopularHighlights] = useState<Game[]>([]);
-  const [popularHasMore, setPopularHasMore] = useState(true);
-  const [popularLoading, setPopularLoading] = useState(false);
-  const [popularInitialized, setPopularInitialized] = useState(false);
-  const popularOffsetRef = useRef(0);
-  const [highlightError, setHighlightError] = useState<string | null>(null);
+  const manufacturerConfigs = useMemo(() => MANUFACTURER_CONFIGS, []);
+  const manufacturerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const prefetchedGameRoutesRef = useRef<Set<string>>(new Set());
+  const [manufacturerStates, setManufacturerStates] = useState<Record<string, ManufacturerState>>(() =>
+    manufacturerConfigs.reduce((acc, config) => {
+      acc[config.id] = {
+        items: [],
+        loading: false,
+        hasMore: true,
+        offset: 0,
+        initialized: false,
+        error: null,
+      };
+      return acc;
+    }, {} as Record<string, ManufacturerState>)
+  );
+  const manufacturerStatesRef = useRef(manufacturerStates);
+  useEffect(() => {
+    manufacturerStatesRef.current = manufacturerStates;
+  }, [manufacturerStates]);
 
+  // 管理画面で非表示にされていないものだけをホーム表示対象にする。
   const homeGames = useMemo(() => {
     const filtered = games.filter((game) => game.visibleOnHome !== false);
     return filtered.length > 0 ? filtered : games;
   }, [games]);
 
+  const combinedManufacturerGames = useMemo(() => {
+    const seen = new Set<string>();
+    const aggregated: Game[] = [];
+    manufacturerConfigs.forEach((config) => {
+      const state = manufacturerStates[config.id];
+      if (!state) return;
+      state.items.forEach((game) => {
+        if (seen.has(game.id)) return;
+        seen.add(game.id);
+        aggregated.push(game);
+      });
+    });
+    return aggregated
+      .slice()
+      .sort((a, b) => (b.firstReleaseDate ?? 0) - (a.firstReleaseDate ?? 0));
+  }, [manufacturerConfigs, manufacturerStates]);
+
   const newReleaseGames = useMemo(() => {
-    if (newReleaseHighlights.length > 0) {
-      return newReleaseHighlights;
+    if (combinedManufacturerGames.length > 0) {
+      return combinedManufacturerGames;
     }
-    const flagged = games.filter((game) => game.featuredNewRelease);
-    if (flagged.length > 0) {
-      return flagged;
-    }
-    return homeGames;
-  }, [games, homeGames, newReleaseHighlights]);
+    return games.filter((game) => game.featuredNewRelease);
+  }, [combinedManufacturerGames, games]);
 
-  const popularGames = useMemo(() => {
-    if (popularHighlights.length > 0) {
-      return popularHighlights;
-    }
-    const flagged = games.filter((game) => game.featuredPopular);
-    if (flagged.length > 0) {
-      return flagged;
-    }
-    return [...homeGames].reverse();
-  }, [games, homeGames, popularHighlights]);
+  const manufacturerLoading = useMemo(
+    () =>
+      manufacturerConfigs.some((config) => {
+        const state = manufacturerStates[config.id];
+        return state ? state.loading && !state.initialized : false;
+      }),
+    [manufacturerConfigs, manufacturerStates]
+  );
 
+  const manufacturerError = useMemo(() => {
+    if (combinedManufacturerGames.length > 0) {
+      return null;
+    }
+    const hasError = manufacturerConfigs.some((config) => {
+      const state = manufacturerStates[config.id];
+      return Boolean(state?.error);
+    });
+    return hasError ? "メーカー別の新作取得に失敗しました" : null;
+  }, [combinedManufacturerGames, manufacturerConfigs, manufacturerStates]);
+
+  // おすすめは管理画面でのフラグだけを頼りにする。
   const recommendedGames = useMemo(
     () => games.filter((game) => game.featuredRecommended),
     [games]
   );
 
+  // ハイライトの追加ロード時に重複を避けるための helper。
   const mergeUniqueGames = useCallback((current: Game[], incoming: Game[]) => {
     if (incoming.length === 0) return current;
     const seen = new Set(current.map((game) => game.id));
@@ -96,6 +228,17 @@ const HomePage: React.FC = () => {
     return [...current, ...appended];
   }, []);
 
+  const updateManufacturerState = useCallback(
+    (id: string, updater: (current: ManufacturerState) => ManufacturerState) => {
+      setManufacturerStates((prev) => ({
+        ...prev,
+        [id]: updater(prev[id]),
+      }));
+    },
+    []
+  );
+
+  // /api/games は Supabase + IGDB の合成結果。初期表示と fallback 双方を考慮している。
   const fetchGames = useCallback(async (signal?: AbortSignal) => {
     setIsGamesLoading(true);
     try {
@@ -107,7 +250,7 @@ const HomePage: React.FC = () => {
         throw new Error(`Failed to fetch games: ${response.status}`);
       }
       const data = (await response.json()) as Game[];
-      setGames(data.length > 0 ? data : FALLBACK_GAMES);
+      setGames(data);
       setError(null);
     } catch (err) {
       if ((err as Error)?.name === "AbortError") {
@@ -118,122 +261,131 @@ const HomePage: React.FC = () => {
       }
       console.error("ゲーム一覧の取得に失敗しました", err);
       setError("ゲーム情報の取得に失敗しました。");
-      setGames(FALLBACK_GAMES);
     } finally {
       setIsGamesLoading(false);
     }
   }, []);
 
-  const fetchHighlights = useCallback(async (signal?: AbortSignal) => {
-    setNewReleaseLoading(true);
-    setPopularLoading(true);
-    setHighlightError(null);
-    let aborted = false;
-    try {
-      const response = await fetch("/api/games/highlights", {
-        signal,
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch highlights: ${response.status}`);
+  const fetchManufacturerInitial = useCallback(
+    async (config: ManufacturerConfig) => {
+      const current = manufacturerStatesRef.current[config.id];
+      if (current?.loading || current?.initialized) return;
+
+      updateManufacturerState(config.id, (state) => ({
+        ...state,
+        loading: true,
+        error: null,
+      }));
+
+      const params = new URLSearchParams();
+      params.set("offset", "0");
+      config.companies.forEach((name) => params.append("company", name));
+
+      try {
+        const response = await fetch(`/api/games/highlights?${params.toString()}`, {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch manufacturer highlights: ${response.status}`);
+        }
+        const data = (await response.json()) as { items?: Game[]; hasMore?: boolean };
+        const items = data.items ?? [];
+
+        updateManufacturerState(config.id, (state) => ({
+          ...state,
+          items,
+          hasMore: data.hasMore ?? items.length >= MANUFACTURER_PAGE_SIZE,
+          offset: items.length,
+          initialized: true,
+          loading: false,
+          error: null,
+        }));
+      } catch (err) {
+        console.error(`メーカー別ハイライトの取得に失敗しました (${config.id})`, err);
+        updateManufacturerState(config.id, (state) => ({
+          ...state,
+          loading: false,
+          error: "ハイライトの取得に失敗しました",
+        }));
       }
-      const data = (await response.json()) as {
-        newReleases?: Game[];
-        popular?: Game[];
-        newHasMore?: boolean;
-        popularHasMore?: boolean;
-      };
-      if (signal?.aborted) {
-        aborted = true;
+    },
+    [updateManufacturerState]
+  );
+
+  const loadMoreManufacturer = useCallback(
+    async (config: ManufacturerConfig) => {
+      const current = manufacturerStatesRef.current[config.id];
+      if (!current || current.loading || !current.hasMore) return;
+
+      updateManufacturerState(config.id, (state) => ({
+        ...state,
+        loading: true,
+        error: null,
+      }));
+
+      const params = new URLSearchParams();
+      params.set("offset", String(current.offset));
+      config.companies.forEach((name) => params.append("company", name));
+
+      try {
+        const response = await fetch(`/api/games/highlights?${params.toString()}`, {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch more manufacturer games: ${response.status}`);
+        }
+        const data = (await response.json()) as { items?: Game[]; hasMore?: boolean };
+        const items = data.items ?? [];
+
+        updateManufacturerState(config.id, (state) => ({
+          ...state,
+          items: mergeUniqueGames(state.items, items),
+          hasMore: data.hasMore ?? items.length >= MANUFACTURER_PAGE_SIZE,
+          offset: state.offset + items.length,
+          initialized: true,
+          loading: false,
+          error: null,
+        }));
+      } catch (err) {
+        console.error(`メーカー別ハイライトの追加取得に失敗しました (${config.id})`, err);
+        updateManufacturerState(config.id, (state) => ({
+          ...state,
+          loading: false,
+          error: "ハイライトの取得に失敗しました",
+        }));
+      }
+    },
+    [mergeUniqueGames, updateManufacturerState]
+  );
+
+  const observeManufacturers = useCallback(() => {
+    const observer = observerRef.current;
+    if (!observer) return;
+    manufacturerConfigs.forEach((config, index) => {
+      if (index === 0) return;
+      const element = manufacturerRefs.current[config.id];
+      if (!element) return;
+      const state = manufacturerStatesRef.current[config.id];
+      if (state?.initialized || state?.loading) {
+        observer.unobserve(element);
         return;
       }
-      const newItems = data.newReleases ?? [];
-      const popularItems = data.popular ?? [];
+      observer.observe(element);
+    });
+  }, [manufacturerConfigs]);
 
-      setNewReleaseHighlights(newItems);
-      setPopularHighlights(popularItems);
-
-      newReleaseOffsetRef.current = newItems.length;
-      popularOffsetRef.current = popularItems.length;
-
-      setNewReleaseHasMore(
-        data.newHasMore ?? newItems.length >= HIGHLIGHT_PAGE_SIZE
-      );
-      setPopularHasMore(
-        data.popularHasMore ?? popularItems.length >= HIGHLIGHT_PAGE_SIZE
-      );
-    } catch (err) {
-      if ((err as Error)?.name === "AbortError") {
-        aborted = true;
-        return;
+  const attachManufacturerRef = useCallback(
+    (id: string, element: HTMLDivElement | null) => {
+      if (element) {
+        manufacturerRefs.current[id] = element;
+        element.setAttribute("data-manufacturer-id", id);
+        observeManufacturers();
+      } else {
+        delete manufacturerRefs.current[id];
       }
-      console.error("ハイライトの取得に失敗しました", err);
-      setNewReleaseHighlights([]);
-      setPopularHighlights([]);
-      setNewReleaseHasMore(false);
-      setPopularHasMore(false);
-      setHighlightError("ハイライトの取得に失敗しました。");
-    } finally {
-      if (!aborted) {
-        setNewReleaseInitialized(true);
-        setPopularInitialized(true);
-      }
-      setNewReleaseLoading(false);
-      setPopularLoading(false);
-    }
-  }, []);
-
-  const loadMoreNewReleases = useCallback(async () => {
-    if (newReleaseLoading || !newReleaseInitialized || !newReleaseHasMore) return;
-    setNewReleaseLoading(true);
-    try {
-      const offset = newReleaseOffsetRef.current;
-      const response = await fetch(`/api/games/highlights?category=new&offset=${offset}`, {
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch more new releases: ${response.status}`);
-      }
-      const data = (await response.json()) as { items?: Game[]; hasMore?: boolean };
-      const items = data.items ?? [];
-      setNewReleaseHighlights((prev) => mergeUniqueGames(prev, items));
-      newReleaseOffsetRef.current = offset + items.length;
-      setNewReleaseHasMore(
-        data.hasMore ?? items.length >= HIGHLIGHT_PAGE_SIZE
-      );
-    } catch (err) {
-      console.error("追加の新作ゲーム取得に失敗しました", err);
-    } finally {
-      setNewReleaseLoading(false);
-      setNewReleaseInitialized(true);
-    }
-  }, [mergeUniqueGames, newReleaseHasMore, newReleaseInitialized, newReleaseLoading]);
-
-  const loadMorePopular = useCallback(async () => {
-    if (popularLoading || !popularInitialized || !popularHasMore) return;
-    setPopularLoading(true);
-    try {
-      const offset = popularOffsetRef.current;
-      const response = await fetch(`/api/games/highlights?category=popular&offset=${offset}`, {
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch more popular games: ${response.status}`);
-      }
-      const data = (await response.json()) as { items?: Game[]; hasMore?: boolean };
-      const items = data.items ?? [];
-      setPopularHighlights((prev) => mergeUniqueGames(prev, items));
-      popularOffsetRef.current = offset + items.length;
-      setPopularHasMore(
-        data.hasMore ?? items.length >= HIGHLIGHT_PAGE_SIZE
-      );
-    } catch (err) {
-      console.error("追加の人気ゲーム取得に失敗しました", err);
-    } finally {
-      setPopularLoading(false);
-      setPopularInitialized(true);
-    }
-  }, [mergeUniqueGames, popularHasMore, popularInitialized, popularLoading]);
+    },
+    [observeManufacturers]
+  );
 
   const fetchComments = useCallback(async (gameId: string) => {
     const cached = commentsCacheRef.current[gameId];
@@ -249,13 +401,68 @@ const HomePage: React.FC = () => {
     return comments;
   }, []);
 
+  // 初回レンダリングでゲーム一覧を取得。
+  // コメントを事前取得するためのプリフェッチロジック。
+  // ホバー中のゲームがあれば浮遊コメントを差し替える。
   useEffect(() => {
     const controller = new AbortController();
-    void Promise.all([fetchGames(controller.signal), fetchHighlights(controller.signal)]);
+    void fetchGames(controller.signal);
     return () => {
       controller.abort();
     };
-  }, [fetchGames, fetchHighlights]);
+  }, [fetchGames]);
+
+  useEffect(() => {
+    if (manufacturerConfigs.length === 0) {
+      return;
+    }
+    const firstConfig = manufacturerConfigs[0];
+    void fetchManufacturerInitial(firstConfig);
+  }, [manufacturerConfigs, fetchManufacturerInitial]);
+
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) {
+      manufacturerConfigs.slice(1).forEach((config) => {
+        void fetchManufacturerInitial(config);
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const id = entry.target.getAttribute("data-manufacturer-id");
+          if (!id) return;
+          const config = manufacturerConfigs.find((item) => item.id === id);
+          if (!config) return;
+          const state = manufacturerStatesRef.current[id];
+          if (state?.initialized || state?.loading) {
+            observer.unobserve(entry.target);
+            return;
+          }
+          void fetchManufacturerInitial(config);
+          observer.unobserve(entry.target);
+        });
+      },
+      {
+        rootMargin: "200px",
+        threshold: 0.1,
+      }
+    );
+
+    observerRef.current = observer;
+    observeManufacturers();
+
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
+    };
+  }, [fetchManufacturerInitial, manufacturerConfigs, observeManufacturers]);
+
+  useEffect(() => {
+    observeManufacturers();
+  }, [manufacturerConfigs, observeManufacturers, manufacturerStates]);
 
   useEffect(() => {
     if (games.length === 0) {
@@ -263,7 +470,7 @@ const HomePage: React.FC = () => {
     }
 
     let cancelled = false;
-    const targets = games.slice(0, 24);
+    const targets = games.slice(0, PREFETCH_COMMENT_LIMIT);
 
     (async () => {
       for (const game of targets) {
@@ -287,17 +494,39 @@ const HomePage: React.FC = () => {
   /**
    * ゲームクリック時の処理
    */
-  const handleGameClick = useCallback((gameId: string) => {
-    router.push(`/game/${gameId}`);
-  }, [router]);
+const handleGameClick = useCallback((gameId: string) => {
+  router.push(`/game/${gameId}`);
+}, [router]);
+
+const handleGameHover = useCallback((gameId: string) => {
+  setHoveredGameId((prev) => (prev === gameId ? prev : gameId));
+  const route = `/game/${gameId}`;
+  if (!prefetchedGameRoutesRef.current.has(route)) {
+    prefetchedGameRoutesRef.current.add(route);
+    try {
+      router.prefetch(route);
+    } catch (error) {
+      console.warn("Failed to prefetch route", route, error);
+      prefetchedGameRoutesRef.current.delete(route);
+    }
+  }
+}, [router]);
+
+const handleGameLeave = useCallback(() => {
+  setHoveredGameId((prev) => (prev === null ? prev : null));
+}, []);
 
   /**
    * 再試行処理
    */
   const handleRetry = useCallback(() => {
     setError(null);
-    void Promise.all([fetchGames(), fetchHighlights()]);
-  }, [fetchGames, fetchHighlights]);
+    void fetchGames();
+    const firstConfig = manufacturerConfigs[0];
+    if (firstConfig) {
+      void fetchManufacturerInitial(firstConfig);
+    }
+  }, [fetchGames, fetchManufacturerInitial, manufacturerConfigs]);
 
   const clearScheduledComments = useCallback(() => {
     scheduledTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
@@ -313,7 +542,7 @@ const HomePage: React.FC = () => {
 
 
     const totalLanes = 20;
-    const maxComments = Math.min(comments.length, 25);
+    const maxComments = Math.min(comments.length, MAX_FLOATING_COMMENTS);
     const floatingList: FloatingComment[] = [];
     const usedLanes = new Set<number>();
 
@@ -373,6 +602,7 @@ const HomePage: React.FC = () => {
     };
   }, [hoveredGameId, fetchComments, scheduleComments, clearScheduledComments]);
 
+  // 画面構成: ヘッダー -> 検索 -> おすすめ -> 新作 -> メーカー別 -> 浮遊コメント。
   return (
     <Box minH="100vh" bg="gray.900" color="white">
       <Container maxW="90%" py={8}>
@@ -391,54 +621,49 @@ const HomePage: React.FC = () => {
           {/* 検索セクション */}
           <SearchWithResults games={homeGames} />
 
-          {/* 新作ゲームセクション */}
-          <HorizontalGameList
-            title="新作ゲーム"
-            games={newReleaseGames}
-            onGameClick={handleGameClick}
-            onGameHover={(gameId) => {
-              setHoveredGameId((prev) => (prev === gameId ? prev : gameId));
-            }}
-            onGameLeave={() => setHoveredGameId((prev) => (prev === null ? prev : null))}
-            isLoading={newReleaseLoading && !newReleaseInitialized}
-            hasMore={newReleaseHasMore}
-            isLoadingMore={newReleaseLoading && newReleaseInitialized}
-            onLoadMore={newReleaseHasMore ? loadMoreNewReleases : undefined}
-            error={highlightError}
-            onRetry={handleRetry}
-          />
-
-          {/* 人気ゲームセクション */}
-          <HorizontalGameList
-            title="人気ゲーム"
-            games={popularGames}
-            onGameClick={handleGameClick}
-            onGameHover={(gameId) => {
-              setHoveredGameId((prev) => (prev === gameId ? prev : gameId));
-            }}
-            onGameLeave={() => setHoveredGameId((prev) => (prev === null ? prev : null))}
-            isLoading={popularLoading && !popularInitialized}
-            hasMore={popularHasMore}
-            isLoadingMore={popularLoading && popularInitialized}
-            onLoadMore={popularHasMore ? loadMorePopular : undefined}
-            error={highlightError}
-            onRetry={handleRetry}
-          />
-
           {/* おすすめゲームセクション */}
           <HorizontalGameList
             title="おすすめゲーム"
             games={recommendedGames}
             onGameClick={handleGameClick}
-            onGameHover={(gameId) => {
-              setHoveredGameId((prev) => (prev === gameId ? prev : gameId));
-            }}
-            onGameLeave={() => setHoveredGameId((prev) => (prev === null ? prev : null))}
+            onGameHover={handleGameHover}
+            onGameLeave={handleGameLeave}
             isLoading={isGamesLoading}
             error={error}
             onRetry={handleRetry}
             emptyMessage="おすすめに設定されたゲームがありません"
           />
+
+          {/* 新作ゲームセクション */}
+          <HorizontalGameList
+            title="新作ゲーム"
+            games={newReleaseGames}
+            onGameClick={handleGameClick}
+            onGameHover={handleGameHover}
+            onGameLeave={handleGameLeave}
+            isLoading={manufacturerLoading && newReleaseGames.length === 0}
+            error={manufacturerError}
+            onRetry={handleRetry}
+            emptyMessage="表示できる新作ゲームがありません"
+          />
+
+          {manufacturerConfigs.map((config) => {
+            const state = manufacturerStates[config.id];
+            if (!state) return null;
+            return (
+              <ManufacturerSection
+                key={config.id}
+                config={config}
+                state={state}
+                attachRef={attachManufacturerRef}
+                onGameClick={handleGameClick}
+                onGameHover={handleGameHover}
+                onGameLeave={handleGameLeave}
+                onLoadMore={loadMoreManufacturer}
+                onRetry={fetchManufacturerInitial}
+              />
+            );
+          })}
         </Stack>
       </Container>
       <OverlayComments comments={floatingComments} totalLanes={20} />
