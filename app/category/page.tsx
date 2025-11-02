@@ -54,6 +54,12 @@ const CategoryPage: React.FC = () => {
       }
       
       const data = (await response.json()) as Game[];
+
+      console.log("=== 取得したゲームデータ ===");
+console.log("ゲーム数:", data.length);
+console.log("最初のゲーム:", data[0]);
+console.log("platforms情報:", data[0]?.platforms);
+
       setGames(data.length > 0 ? data : FALLBACK_GAMES);
       setError(null);
     } catch (err) {
@@ -130,25 +136,37 @@ const CategoryPage: React.FC = () => {
    * フィルター済みゲーム一覧
    * カテゴリとプラットフォームの両方で絞り込み
    */
-  const filteredGames = useMemo(() => {
-    // 両方とも未選択の場合は空配列
-    if (selectedCategories.length === 0 && selectedPlatforms.length === 0) {
-      return [];
-    }
+const filteredGames = useMemo(() => {
+  console.log("=== フィルタリング実行 ===");
+  console.log("選択中カテゴリ:", selectedCategories);
+  console.log("選択中プラットフォーム:", selectedPlatforms);
+  console.log("全ゲーム数:", games.length);
+  
+  // 両方とも未選択の場合は空配列
+  if (selectedCategories.length === 0 && selectedPlatforms.length === 0) {
+    console.log("→ 結果: 両方未選択のため空配列");
+    return [];
+  }
+  
+  const result = games.filter(game => {
+    // カテゴリチェック
+    const categoryMatch = selectedCategories.length === 0 || 
+      game.categories.some(category => selectedCategories.includes(category));
     
-    return games.filter(game => {
-      // カテゴリチェック（選択されている場合のみ）
-      const categoryMatch = selectedCategories.length === 0 || 
-        game.categories.some(category => selectedCategories.includes(category));
-      
-      // プラットフォームチェック（選択されている場合のみ）
-      const platformMatch = selectedPlatforms.length === 0 || 
-        (game.platforms && game.platforms.some(platform => selectedPlatforms.includes(platform)));
-      
-      // 両方の条件を満たす（AND条件）
-      return categoryMatch && platformMatch;
-    });
-  }, [selectedCategories, selectedPlatforms, games]);
+    // プラットフォームチェック
+    const platformMatch = selectedPlatforms.length === 0 || 
+      (game.platforms && game.platforms.some(platform => selectedPlatforms.includes(platform)));
+    
+    console.log(`ゲーム: ${game.title}`);
+    console.log(`  - platforms: ${game.platforms?.join(", ") || "なし"}`);
+    console.log(`  - categoryMatch: ${categoryMatch}, platformMatch: ${platformMatch}`);
+    
+    return categoryMatch && platformMatch;
+  });
+  
+  console.log("→ フィルタリング結果:", result.length, "件");
+  return result;
+}, [selectedCategories, selectedPlatforms, games]);
 
   /**
    * カテゴリ選択切り替え
@@ -166,15 +184,18 @@ const CategoryPage: React.FC = () => {
   /**
    * プラットフォーム選択切り替え
    */
-  const handlePlatformToggle = useCallback((platform: GamePlatform) => {
-    setSelectedPlatforms(prev => {
-      if (prev.includes(platform)) {
-        return prev.filter(p => p !== platform);
-      } else {
-        return [...prev, platform];
-      }
-    });
-  }, []);
+const handlePlatformToggle = useCallback((platform: GamePlatform) => {
+  console.log("=== プラットフォーム選択 ===");
+  console.log("選択されたプラットフォーム:", platform);
+  
+  setSelectedPlatforms(prev => {
+    const next = prev.includes(platform)
+      ? prev.filter(p => p !== platform)
+      : [...prev, platform];
+    console.log("新しい選択状態:", next);
+    return next;
+  });
+}, []);
 
   /**
    * 全解除（カテゴリ＋プラットフォーム両方）

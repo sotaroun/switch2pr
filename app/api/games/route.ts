@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { buildCoverUrl, igdbRequest } from "@/lib/api/igdb";
 import { getSupabaseServiceRoleClient } from "@/lib/api/supabase";
-import type { Game, GameCategory } from "@/types/game";
+import type { Game, GameCategory, GamePlatform } from "@/types/game";
 
 const GAME_FIELDS = [
   "id",
@@ -10,6 +10,7 @@ const GAME_FIELDS = [
   "summary",
   "cover.image_id",
   "genres.name",
+  "platforms.name", 
   "total_rating",
   "total_rating_count",
 ];
@@ -27,28 +28,62 @@ type RawGame = {
   summary?: string | null;
   cover?: { image_id?: string | null } | null;
   genres?: Array<{ name?: string | null }> | null;
+  platforms?: Array<{ name?: string | null }> | null;
 };
 
 const GENRE_TO_CATEGORY: Record<string, GameCategory> = {
   "Role-playing (RPG)": "RPG",
-  "Adventure": "アクション",
+  "Adventure": "アドベンチャー",
   "Action": "アクション",
-  "Platform": "アクション",
-  "Hack and slash/Beat 'em up": "アクション",
-  "Fighting": "アクション",
-  "Shooter": "シューティング",
+  "Platform": "プラットフォーム",
+  "Hack and slash/Beat 'em up": "ハクスラ",
+  "Fighting": "対戦格闘",
+  "Shooter": "シューター",
   "Sport": "スポーツ",
-  "Racing": "スポーツ",
+  "Racing": "レース",
   "Puzzle": "パズル",
-  "Quiz/Trivia": "パズル",
-  "Music": "アクション",
-  "Simulator": "スポーツ",
-  "Strategy": "RPG",
-  "Real Time Strategy (RTS)": "RPG",
-  "Tactical": "RPG",
-  "Turn-based strategy (TBS)": "RPG",
-  "Indie": "アクション",
-  "Arcade": "アクション",
+  "Quiz/Trivia": "クイズ",
+  "Music": "音楽",
+  "Simulator": "シミュレーター",
+  "Strategy": "ストラテジー",
+  "Real Time Strategy (RTS)": "RTS",
+  "Tactical": "タクティカル",
+  "Turn-based strategy (TBS)": "SRPG",
+  "Indie": "インディー",
+  "Arcade": "アーケード",
+};
+
+const PLATFORM_NAME_MAP: Record<string, GamePlatform> = {
+  "Nintendo Switch": "Nintendo Switch",
+  "PC (Microsoft Windows)": "PC(Windows)",
+  "PlayStation 5": "PlayStation 5",
+  "PlayStation 4": "PlayStation 4",
+  "Xbox Series X|S": "Xbox Series X/S",
+  "Xbox One": "Xbox One",
+  "PlayStation 3": "Playstation 3",
+  "Xbox 360": "xbox 360",
+  "Wii": "Wii",
+  "Wii U": "Wii U",
+  "Nintendo 3DS": "Nintendo 3DS",
+  "New Nintendo 3DS": "New Nintenendo 3DS",
+  "Nintendo DS": "Nintendo DS",
+  "Nintendo DSi": "Nintendo DSi",
+  "PlayStation Vita": "PlayStation Vita",
+  "PlayStation Portable": "Playstation Portable",
+  "iOS": "iOS",
+  "Android": "Android",
+  "Mac": "Mac",
+  "Game Boy Advance": "Game Boy Advance",
+  "Nintendo 64": "Nintendo 64",
+  "Nintendo GameCube": "Nintendo GameCube",
+  "PlayStation": "Playstation",
+  "Dreamcast": "Dreamcast",
+  "Game Boy Color": "Game Boy Color",
+  "Game Boy": "Game Boy",
+  "Super Nintendo Entertainment System": "Super Famicom",
+  "Nintendo Entertainment System": "Nintendo Entertainment System",
+  "WonderSwan": "WonderSwan",
+  "WonderSwan Color": "WonderSwan Color",
 };
 
 const DEFAULT_CATEGORY: GameCategory = "アクション";
@@ -72,6 +107,27 @@ function mapGenresToCategories(genres: Array<{ name?: string | null }> | null | 
 
   return Array.from(new Set(mapped));
 }
+
+function mapPlatformNames(platforms: Array<{ name?: string | null }> | null | undefined): GamePlatform[] {
+  if (!platforms || platforms.length === 0) {
+    return ["その他"];
+  }
+
+  const mapped = platforms
+    .map((platform) => {
+      const name = platform?.name;
+      if (!name) return undefined;
+      return PLATFORM_NAME_MAP[name] ?? "その他";
+    })
+    .filter((platform): platform is GamePlatform => Boolean(platform));
+
+  if (mapped.length === 0) {
+    return ["その他"];
+  }
+
+  return Array.from(new Set(mapped));
+}
+
 
 export async function GET() {
   try {
@@ -114,6 +170,7 @@ export async function GET() {
       id: String(game.id),
       title: game.name,
       categories: mapGenresToCategories(game.genres ?? null),
+      platforms: mapPlatformNames(game.platforms ?? null),
       iconUrl: buildCoverUrl(game.cover?.image_id ?? undefined),
       summary: game.summary ?? undefined,
     }));

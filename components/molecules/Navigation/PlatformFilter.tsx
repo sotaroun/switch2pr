@@ -1,4 +1,3 @@
-// components/molecules/Navigation/PlatformFilter.tsx
 import React, { useState, useCallback } from 'react';
 import { 
   Box, 
@@ -8,7 +7,7 @@ import {
   WrapItem,
   Badge
 } from "@chakra-ui/react";
-import CategoryButton from "@/components/atoms/buttons/CategoryButton";
+import PlatformButton from "@/components/atoms/buttons/PlatformButton";
 import { GamePlatform } from "@/types/game";
 
 interface PlatformFilterProps {
@@ -22,7 +21,6 @@ interface PlatformFilterProps {
 
 /**
  * プラットフォームフィルター機能を提供するMoleculeコンポーネント
- * CategoryFilterと同じデザイン
  */
 const PlatformFilter: React.FC<PlatformFilterProps> = ({
   platforms,
@@ -103,8 +101,8 @@ const PlatformFilter: React.FC<PlatformFilterProps> = ({
           
           return (
             <WrapItem key={platform}>
-              <CategoryButton
-                category={platform}
+              <PlatformButton
+                platform={platform}
                 isSelected={isSelected}
                 isAnimating={isAnimating}
                 onClick={() => handlePlatformClick(platform)}
