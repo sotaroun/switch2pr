@@ -6,7 +6,6 @@ import {
   Flex,
   Link as ChakraLink,
   IconButton,
-  useBreakpointValue,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu as MenuIcon, X as XIcon } from "lucide-react";
@@ -58,8 +57,6 @@ export const Header = ({ menus = [] }: HeaderProps) => {
   const [hoveredTitle, setHoveredTitle] = useState(false);
   const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const isDesktop = useBreakpointValue({ base: false, md: true });
 
   return (
     <header>
@@ -127,11 +124,8 @@ export const Header = ({ menus = [] }: HeaderProps) => {
 
         {/* デスクトップメニュー */}
         <Flex gap={8} display={{ base: "none", md: "flex" }}>
-          {menus.map((menu: any) => {
-            const firstHref =
-              (menu && (menu.href as string)) ??
-              (menu?.menuLinks && menu.menuLinks[0]?.href) ??
-              "#";
+          {menus.map((menu) => {
+            const firstHref = menu.href ?? menu.menuLinks?.[0]?.href ?? "#";
 
             return (
               <Box
@@ -196,11 +190,8 @@ export const Header = ({ menus = [] }: HeaderProps) => {
             px={4}
             py={6}
           >
-            {menus.map((menu: any) => {
-              const firstHref =
-                (menu && (menu.href as string)) ??
-                (menu?.menuLinks && menu.menuLinks[0]?.href) ??
-                "#";
+            {menus.map((menu) => {
+              const firstHref = menu.href ?? menu.menuLinks?.[0]?.href ?? "#";
 
               return menu.menuLinks ? (
                 <Box key={menu.menuLabel} mb={4}>
@@ -218,11 +209,11 @@ export const Header = ({ menus = [] }: HeaderProps) => {
                   </ChakraLink>
 
                   <Box pl={2}>
-                    {menu.menuLinks.map((l: any) => (
+                    {(menu.menuLinks ?? []).map((link) => (
                       <ChakraLink
                         as={NextLink}
-                        key={l.href}
-                        href={l.href}
+                        key={link.href}
+                        href={link.href}
                         display="block"
                         mb={2}
                         fontSize="sm"
@@ -230,7 +221,7 @@ export const Header = ({ menus = [] }: HeaderProps) => {
                         color="white"
                         _hover={{ color: "#E50914" }}
                       >
-                        {l.label}
+                        {link.label}
                       </ChakraLink>
                     ))}
                   </Box>

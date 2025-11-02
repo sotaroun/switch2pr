@@ -1,6 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { ScrollPosition, HorizontalScrollConfig } from "@/types/horizontalScroll";
-import { HORIZONTAL_SCROLL_UI } from "@/components/molecules/HorizontalScrollList/config";
 
 interface UseHorizontalScrollReturn {
   /** スクロールコンテナRef */
@@ -21,8 +20,7 @@ interface UseHorizontalScrollReturn {
  * 横スクロール管理フック
  */
 export function useHorizontalScroll(
-  config: HorizontalScrollConfig,
-  itemCount: number
+  config: HorizontalScrollConfig
 ): UseHorizontalScrollReturn {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({
@@ -70,7 +68,7 @@ export function useHorizontalScroll(
   const getCardScrollDistance = useCallback((): number => {
     if (!scrollRef.current) return 0;
 
-    const { scrollWidth, clientWidth } = scrollRef.current;
+    const { clientWidth } = scrollRef.current;
     const cardWidth = clientWidth / visibleCards;
     return cardWidth + config.gap;
   }, [visibleCards, config.gap]);
