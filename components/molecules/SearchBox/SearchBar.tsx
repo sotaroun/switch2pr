@@ -111,7 +111,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         handleClose();
         break;
     }
-  }, [searchResults, selectedIndex]);
+  }, [handleClose, handleSelectResult, searchResults, searchText, selectedIndex]);
 
   /**
    * 検索結果選択時の処理

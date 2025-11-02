@@ -50,7 +50,7 @@ const HorizontalScrollList: React.FC<HorizontalScrollListProps> = memo(({
     scrollLeft, 
     scrollRight,
     visibleCards 
-  } = useHorizontalScroll(DEFAULT_SCROLL_CONFIG, games.length);
+  } = useHorizontalScroll(DEFAULT_SCROLL_CONFIG);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [centerIndex, setCenterIndex] = React.useState(1);
