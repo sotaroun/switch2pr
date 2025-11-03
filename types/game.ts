@@ -224,3 +224,23 @@ export interface SearchResult {
   title: string;
 }
 
+export interface Game {
+  /** ゲームの一意識別子（ASINまたはIGDB ID） */
+  id: string;
+  /** ゲームタイトル */
+  title: string;
+  /** カテゴリ一覧（厳密な型定義） */
+  categories: GameCategory[];
+  /** 対応プラットフォーム */
+  platforms?: GamePlatform[];
+  /** デベロッパー */
+  developer?: GameCompany;
+  /** パブリッシャー */
+  publisher?: GameCompany;
+  /** ゲームアイコンのURL（オプション） */
+  iconUrl?: string;
+  /** 概要文（オプション） */
+  summary?: string;
+  /** 発売日（ISO 8601形式） */
+  releaseDate?: string;
+}

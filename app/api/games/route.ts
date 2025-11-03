@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { buildCoverUrl, igdbRequest } from "@/lib/api/igdb";
 import { getSupabaseServiceRoleClient } from "@/lib/api/supabase";
@@ -11,6 +11,7 @@ const GAME_FIELDS = [
   "cover.image_id",
   "genres.name",
   "platforms.name", 
+  "first_release_date",
   "total_rating",
   "total_rating_count",
 ];
@@ -29,6 +30,7 @@ type RawGame = {
   cover?: { image_id?: string | null } | null;
   genres?: Array<{ name?: string | null }> | null;
   platforms?: Array<{ name?: string | null }> | null;
+  first_release_date?: number | null;
 };
 
 const GENRE_TO_CATEGORY: Record<string, GameCategory> = {
@@ -129,8 +131,13 @@ function mapPlatformNames(platforms: Array<{ name?: string | null }> | null | un
 }
 
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // クエリパラメータから offset を取得
+    const searchParams = request.nextUrl.searchParams;
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
+    const limit = 30;
+
     let distinctIds: number[] = [];
 
     try {
@@ -159,10 +166,18 @@ export async function GET() {
       distinctIds.length > 0
         ? `
             fields ${GAME_FIELDS.join(", ")};
-            where id = (${distinctIds.join(",")});
-            limit ${distinctIds.length};
+            where id = (${distinctIds.join(",")}) & first_release_date != null;
+            sort first_release_date desc;
+            limit ${limit};
+            offset ${offset};
           `
-        : POPULAR_GAMES_QUERY;
+        : `
+            fields ${GAME_FIELDS.join(", ")};
+            where total_rating != null & total_rating_count > 20 & first_release_date != null;
+            sort first_release_date desc;
+            limit ${limit};
+            offset ${offset};
+          `;
 
     const response = await igdbRequest<RawGame[]>("games", igdbQuery);
 
@@ -173,9 +188,16 @@ export async function GET() {
       platforms: mapPlatformNames(game.platforms ?? null),
       iconUrl: buildCoverUrl(game.cover?.image_id ?? undefined),
       summary: game.summary ?? undefined,
+      releaseDate: game.first_release_date 
+        ? new Date(game.first_release_date * 1000).toISOString() 
+        : undefined,
     }));
 
-    return NextResponse.json(games, {
+    return NextResponse.json({
+      games,
+      hasMore: response.length === limit,
+      offset: offset + response.length,
+    }, {
       headers: {
         "Cache-Control": "public, max-age=120",
       },

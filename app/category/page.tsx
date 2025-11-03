@@ -22,9 +22,11 @@ const CategoryPage: React.FC = () => {
   const isPageLoading = usePageLoad();
   
   // ゲームデータ関連
-  const [games, setGames] = useState<Game[]>(FALLBACK_GAMES);
-  const [isGamesLoading, setIsGamesLoading] = useState(true);
+  const [games, setGames] = useState<Game[]>([]);
+  const [isGamesLoading, setIsGamesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
   
   // カテゴリフィルター
   const [selectedCategories, setSelectedCategories] = useState<GameCategory[]>([]);
@@ -37,43 +39,70 @@ const CategoryPage: React.FC = () => {
   const [floatingComments, setFloatingComments] = useState<FloatingComment[]>([]);
   const commentsCacheRef = useRef<Record<string, OverlayComment[]>>({});
   const scheduledTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  
+  // 無限スクロール用
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   /**
    * ゲーム一覧を取得
    */
-  const fetchGames = useCallback(async (signal?: AbortSignal) => {
-    setIsGamesLoading(true);
-    try {
-      const response = await fetch("/api/games", {
-        signal,
-        cache: "no-store",
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch games: ${response.status}`);
-      }
-      
-      const data = (await response.json()) as Game[];
-
-      console.log("=== 取得したゲームデータ ===");
-console.log("ゲーム数:", data.length);
-console.log("最初のゲーム:", data[0]);
-console.log("platforms情報:", data[0]?.platforms);
-
-      setGames(data.length > 0 ? data : FALLBACK_GAMES);
-      setError(null);
-    } catch (err) {
-      if ((err as Error)?.name === "AbortError") {
-        return;
-      }
-      
-      console.error("ゲーム一覧の取得に失敗しました", err);
-      setError("ゲーム情報の取得に失敗しました。");
-      setGames(FALLBACK_GAMES);
-    } finally {
-      setIsGamesLoading(false);
+const fetchGames = useCallback(async (currentOffset: number, signal?: AbortSignal) => {
+  console.log("=== fetchGames 開始 ===");
+  console.log("currentOffset:", currentOffset);
+  
+  setIsGamesLoading(true);
+  try {
+    const url = `/api/games?offset=${currentOffset}`;
+    console.log("API URL:", url);
+    
+    const response = await fetch(url, {
+      signal,
+      cache: "no-store",
+    });
+    
+    console.log("API レスポンスステータス:", response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch games: ${response.status}`);
     }
-  }, []);
+    
+    const data = await response.json();
+    console.log("API レスポンスデータ:", data);
+    
+    // data.gamesが存在するか確認
+    if (!data || !Array.isArray(data.games)) {
+      console.error("API レスポンスが不正です:", data);
+      throw new Error("Invalid API response");
+    }
+    
+    console.log("取得したゲーム数:", data.games.length);
+    
+    setGames(prev => {
+      const newGames = currentOffset === 0 ? data.games : [...prev, ...data.games];
+      console.log("setGames: 新しいgames配列の長さ:", newGames.length);
+      return newGames;
+    });
+    setHasMore(data.hasMore ?? false);
+    setOffset(data.offset ?? 0);
+    setError(null);
+  } catch (err) {
+    if ((err as Error)?.name === "AbortError") {
+      console.log("→ リクエストがキャンセルされました");
+      return;
+    }
+    
+    console.error("ゲーム一覧の取得に失敗しました", err);
+    setError("ゲーム情報の取得に失敗しました。");
+    if (currentOffset === 0) {
+      console.log("→ フォールバックゲームを設定");
+      setGames(FALLBACK_GAMES);
+    }
+  } finally {
+    setIsGamesLoading(false);
+    console.log("=== fetchGames 終了 ===");
+  }
+}, []);
 
   /**
    * コメント取得（キャッシュ対応）
@@ -97,7 +126,7 @@ console.log("platforms情報:", data[0]?.platforms);
    */
   useEffect(() => {
     const controller = new AbortController();
-    void fetchGames(controller.signal);
+    void fetchGames(0, controller.signal);
     
     return () => {
       controller.abort();
@@ -105,10 +134,54 @@ console.log("platforms情報:", data[0]?.platforms);
   }, [fetchGames]);
 
   /**
+   * 無限スクロールの設定
+   */
+  
+  useEffect(() => {
+  console.log("=== 無限スクロール useEffect 実行 ===");
+  console.log("isGamesLoading:", isGamesLoading);
+  console.log("hasMore:", hasMore);
+  console.log("offset:", offset);
+  console.log("loadMoreRef.current:", loadMoreRef.current);
+  
+  if (isGamesLoading || !hasMore) {
+    console.log("→ スキップ（ローディング中 or これ以上なし）");
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      console.log("=== IntersectionObserver コールバック ===");
+      console.log("isIntersecting:", entries[0].isIntersecting);
+      console.log("hasMore:", hasMore);
+      console.log("isGamesLoading:", isGamesLoading);
+      
+      if (entries[0].isIntersecting && hasMore && !isGamesLoading) {
+        console.log("→ 次のページを読み込み開始");
+        void fetchGames(offset);
+      }
+    },
+    { threshold: 0.1 }
+  );
+
+  if (loadMoreRef.current) {
+    console.log("→ Observer を設定");
+    observer.observe(loadMoreRef.current);
+  } else {
+    console.log("→ loadMoreRef.current が null");
+  }
+
+  return () => {
+    console.log("→ Observer をクリーンアップ");
+    observer.disconnect();
+  };
+}, [offset, hasMore, isGamesLoading, fetchGames]);
+
+  /**
    * コメントの事前取得（最大24件）
    */
   useEffect(() => {
-    if (games.length === 0) return;
+    if (!games || games.length === 0) return; 
 
     let cancelled = false;
     const targets = games.slice(0, 24);
@@ -136,35 +209,38 @@ console.log("platforms情報:", data[0]?.platforms);
    * フィルター済みゲーム一覧
    * カテゴリとプラットフォームの両方で絞り込み
    */
-const filteredGames = useMemo(() => {
-  console.log("=== フィルタリング実行 ===");
-  console.log("選択中カテゴリ:", selectedCategories);
-  console.log("選択中プラットフォーム:", selectedPlatforms);
-  console.log("全ゲーム数:", games.length);
+ const filteredGames = useMemo(() => {
+  console.log("=== filteredGames 計算開始 ===");
+  console.log("games.length:", games.length);
+  console.log("selectedCategories:", selectedCategories);
+  console.log("selectedPlatforms:", selectedPlatforms);
   
-  // 両方とも未選択の場合は空配列
+  // フィルター条件が何もない場合は全ゲーム表示
   if (selectedCategories.length === 0 && selectedPlatforms.length === 0) {
-    console.log("→ 結果: 両方未選択のため空配列");
-    return [];
+    console.log("→ フィルター条件なし、全ゲーム返却:", games.length);
+    return games;
   }
   
   const result = games.filter(game => {
-    // カテゴリチェック
+    // カテゴリチェック（選択されている場合のみ）
     const categoryMatch = selectedCategories.length === 0 || 
       game.categories.some(category => selectedCategories.includes(category));
     
-    // プラットフォームチェック
+    // プラットフォームチェック（選択されている場合のみ）
     const platformMatch = selectedPlatforms.length === 0 || 
       (game.platforms && game.platforms.some(platform => selectedPlatforms.includes(platform)));
     
-    console.log(`ゲーム: ${game.title}`);
-    console.log(`  - platforms: ${game.platforms?.join(", ") || "なし"}`);
-    console.log(`  - categoryMatch: ${categoryMatch}, platformMatch: ${platformMatch}`);
+    const matches = categoryMatch && platformMatch;
     
-    return categoryMatch && platformMatch;
+    console.log(`ゲーム: ${game.title}`);
+    console.log(`  categories: ${game.categories.join(", ")}`);
+    console.log(`  platforms: ${game.platforms?.join(", ") || "なし"}`);
+    console.log(`  categoryMatch: ${categoryMatch}, platformMatch: ${platformMatch}, 結果: ${matches}`);
+    
+    return matches;
   });
   
-  console.log("→ フィルタリング結果:", result.length, "件");
+  console.log("→ フィルター結果:", result.length, "件");
   return result;
 }, [selectedCategories, selectedPlatforms, games]);
 
@@ -184,18 +260,15 @@ const filteredGames = useMemo(() => {
   /**
    * プラットフォーム選択切り替え
    */
-const handlePlatformToggle = useCallback((platform: GamePlatform) => {
-  console.log("=== プラットフォーム選択 ===");
-  console.log("選択されたプラットフォーム:", platform);
-  
-  setSelectedPlatforms(prev => {
-    const next = prev.includes(platform)
-      ? prev.filter(p => p !== platform)
-      : [...prev, platform];
-    console.log("新しい選択状態:", next);
-    return next;
-  });
-}, []);
+  const handlePlatformToggle = useCallback((platform: GamePlatform) => {
+    setSelectedPlatforms(prev => {
+      if (prev.includes(platform)) {
+        return prev.filter(p => p !== platform);
+      } else {
+        return [...prev, platform];
+      }
+    });
+  }, []);
 
   /**
    * 全解除（カテゴリ＋プラットフォーム両方）
@@ -316,7 +389,10 @@ const handlePlatformToggle = useCallback((platform: GamePlatform) => {
    */
   const handleRetry = useCallback(() => {
     setError(null);
-    void fetchGames();
+    setGames([]);
+    setOffset(0);
+    setHasMore(true);
+    void fetchGames(0);
   }, [fetchGames]);
 
   return (
@@ -339,6 +415,8 @@ const handlePlatformToggle = useCallback((platform: GamePlatform) => {
         isLoading={isGamesLoading}
         error={error}
         onRetry={handleRetry}
+        loadMoreRef={loadMoreRef}
+        hasMore={hasMore}
       />
 
       {/* オーバーレイコメント */}

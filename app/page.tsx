@@ -31,7 +31,7 @@ const FALLBACK_GAMES: Game[] = [
  */
 const HomePage: React.FC = () => {
   const router = useRouter();
-  const [games, setGames] = useState<Game[]>(FALLBACK_GAMES);
+  const [games, setGames] = useState<Game[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isGamesLoading, setIsGamesLoading] = useState(true);
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);

@@ -5,7 +5,8 @@ import {
   Stack,
   Heading, 
   Text,
-  Flex
+  Flex,
+  Spinner
 } from "@chakra-ui/react";
 import { MdClear } from "react-icons/md";
 import CategoryFilterOrg from "@/components/organisms/search/CategoryFilter";
@@ -43,6 +44,10 @@ interface CategoryTemplateProps {
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+
+  // 無限スクロール用
+  loadMoreRef?: React.RefObject<HTMLDivElement | null>;
+  hasMore?: boolean;
   
   // カスタマイズオプション
   /** ページタイトル */
@@ -67,6 +72,9 @@ const CategoryTemplate: React.FC<CategoryTemplateProps> = memo(({
   onGameClick,
   onGameHover,
   onGameLeave,
+  isLoading,
+  loadMoreRef,
+  hasMore,
   pageTitle = "カテゴリから探す",
   pageDescription = "お好みのジャンル・プラットフォームでゲームを絞り込み"
 }) => {
@@ -159,6 +167,25 @@ const CategoryTemplate: React.FC<CategoryTemplateProps> = memo(({
             onGameHover={onGameHover}
             onGameLeave={onGameLeave}
           />
+
+          {/* 無限スクロール用のトリガー要素 */}
+          {hasMore && (
+            <Box ref={loadMoreRef} py={8} textAlign="center">
+              {isLoading && (
+                <Flex justify="center" align="center" gap={3}>
+                  <Spinner size="lg" color="blue.400" />
+                  <Text color="gray.400">読み込み中...</Text>
+                </Flex>
+              )}
+            </Box>
+          )}
+
+          {/* すべて読み込み完了メッセージ */}
+          {!hasMore && filteredGames.length > 0 && (
+            <Box py={8} textAlign="center">
+              <Text color="gray.400">すべてのゲームを表示しました</Text>
+            </Box>
+          )}
         </Stack>
       </Container>
     </Box>
