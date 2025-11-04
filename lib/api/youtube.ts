@@ -149,10 +149,10 @@ async function fetchCommentsForVideo(videoId: string, maxResults: number, apiKey
       };
     })
     .filter((item): item is {
-      commentId?: string;
+      commentId: string | undefined;
       comment: string;
       author: string;
-      likeCount?: number;
+      likeCount: number | undefined;
       publishedAt: string;
     } => Boolean(item));
 }

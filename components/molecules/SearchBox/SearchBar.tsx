@@ -47,66 +47,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const searchResults = useMemo<SearchResult[]>(() => {
     const trimmedText = searchText.trim();
     if (trimmedText === '') return [];
-    
+
     const lowerSearchText = trimmedText.toLowerCase();
-    
+
     return games
-      .filter(game => 
-        game.title.toLowerCase().includes(lowerSearchText)
+      .filter((game) =>
+        game.title.toLowerCase().includes(lowerSearchText) || game.id === trimmedText
       )
-      .map(game => ({
+      .map((game) => ({
         id: game.id,
-        title: game.title
+        title: game.title,
       }));
   }, [searchText, games]);
-
-  /**
-   * 検索テキスト変更時の処理
-   */
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchText(value);
-    setSelectedIndex(0);
-    setIsOpen(value.trim() !== '');
-  }, []);
-
-  /**
-   * キーボード操作の処理
-   * IME変換中は無視する
-   */
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    // IME変換中はキーボード操作を無効化
-    if (e.nativeEvent.isComposing) {
-      return;
-    }
-
-    if (searchResults.length === 0) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < searchResults.length - 1 ? prev + 1 : prev
-        );
-        break;
-      
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : 0);
-        break;
-      
-      case 'Enter':
-        e.preventDefault();
-        if (searchResults[selectedIndex]) {
-          handleSelectResult(searchResults[selectedIndex]);
-        }
-        break;
-      
-      case 'Escape':
-        e.preventDefault();
-        handleClose();
-        break;
-    }
-  }, [searchResults, selectedIndex]);
 
   /**
    * 検索結果選択時の処理
@@ -126,6 +78,59 @@ const SearchBar: React.FC<SearchBarProps> = ({
   }, []);
 
   /**
+   * キーボード操作の処理
+   * IME変換中は無視する
+   */
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    // IME変換中はキーボード操作を無効化
+    if (e.nativeEvent.isComposing) {
+      return;
+    }
+
+    if (searchResults.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev =>
+          prev < searchResults.length - 1 ? prev + 1 : prev
+        );
+        break;
+      
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => prev > 0 ? prev - 1 : 0);
+        break;
+      
+      case 'Enter':
+        e.preventDefault();
+        if (searchResults[selectedIndex]) {
+          handleSelectResult(searchResults[selectedIndex]);
+        } else {
+          const trimmed = searchText.trim();
+          if (trimmed && /^\d+$/.test(trimmed)) {
+            handleSelectResult({ id: trimmed, title: trimmed });
+          }
+        }
+        break;
+      
+      case 'Escape':
+        e.preventDefault();
+        handleClose();
+        break;
+    }
+  }, [handleClose, handleSelectResult, searchResults, searchText, selectedIndex]);
+
+  /**
+   * 検索テキスト変更時の処理
+   */
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchText(value);
+    setSelectedIndex(0);
+    setIsOpen(value.trim() !== '');
+  }, []);
+
+  /**
    * 入力欄フォーカス時の処理
    */
   const handleFocus = useCallback(() => {
@@ -135,15 +140,26 @@ const SearchBar: React.FC<SearchBarProps> = ({
   }, [searchText]);
 
   return (
-    <Box position="relative" w="full">
+    <Box position="relative" w={{ base: "100%", md: "520px" }}>
       <SearchInput
         value={searchText}
         onChange={handleSearchChange}
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
+        showButton
+        onSubmit={() => {
+          if (searchResults[selectedIndex]) {
+            handleSelectResult(searchResults[selectedIndex]);
+          } else {
+            const trimmed = searchText.trim();
+            if (trimmed && /^\d+$/.test(trimmed)) {
+              handleSelectResult({ id: trimmed, title: trimmed });
+            }
+          }
+        }}
       />
-      
+
       {isOpen && (
         <SearchResults
           results={searchResults}

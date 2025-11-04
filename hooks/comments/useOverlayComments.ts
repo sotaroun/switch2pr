@@ -140,6 +140,7 @@ export function useOverlayComments({
         lane,
         duration,
         fontSize,
+        delay: 0,
         key: `${randomComment.id}-${commentCounterRef.current++}`
       };
 

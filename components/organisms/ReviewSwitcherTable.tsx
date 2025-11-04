@@ -197,7 +197,7 @@ export default function ReviewSwitcherTable() {
               onClick={() => {
                 void handleHelpfulVote(row);
               }}
-              isDisabled={isDisabled}
+              disabled={isDisabled}
             />
           );
         },
@@ -389,28 +389,7 @@ export default function ReviewSwitcherTable() {
     <Box borderRadius="xl" overflowX="auto" border="1px solid rgba(255, 255, 255, 0.08)">
       <Table.Root
         size="md"
-        variant="simple"
-        sx={{
-          th: {
-            fontSize: "sm",
-            fontWeight: "semibold",
-            textTransform: "none",
-            letterSpacing: "0.02em",
-            color: "rgba(255, 255, 255, 0.92)",
-            background: "rgba(34, 34, 34, 0.95)",
-            borderColor: "rgba(255, 255, 255, 0.08)",
-            textShadow: "none",
-          },
-          td: {
-            fontSize: "sm",
-            color: "rgba(255,255,255,0.88)",
-            borderColor: "rgba(255, 255, 255, 0.06)",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
-          },
-          "tbody tr:last-of-type td": {
-            borderBottomWidth: 0,
-          },
-        }}
+        variant="outline"
       >
         <Table.Header>
           <Table.Row>
@@ -464,7 +443,7 @@ export default function ReviewSwitcherTable() {
   );
 
   return (
-    <Stack spacing={6} align="center" w="full">
+    <Stack gap={6} align="center" w="full">
       <ReviewSourceToggle value={tab} onChange={setTab} />
 
       <Box
@@ -483,7 +462,7 @@ export default function ReviewSwitcherTable() {
           borderColor: "rgba(255, 255, 255, 0.12)",
         }}
       >
-        <Stack spacing={5}>
+        <Stack gap={5}>
           <ReviewTableHeader
             icon={headerIcon}
             title={tabTitles[tab]}

@@ -23,6 +23,12 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 ## Documentation
 
 補足資料や仕様メモは `docs/` ディレクトリにまとめています。
+開発時に特に参照の多いもの:
+
+- [テスト / 回帰確認チェックリスト](docs/test-checklist.md)
+- [環境変数の設定方法](docs/environment-config.md)
+
+また、`.env.example` を `.env.local` にコピーし、各種 API キー・URL を設定してから開発を開始してください。
 
 ## Learn More
 

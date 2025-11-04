@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { getGameOverview } from "@/lib/api/gameOverview";
+import { readGameOverviewCache } from "@/lib/cache/gameOverviewCache";
 import type { GameOverviewData } from "@/types/game-detail";
 
 type UseGameOverviewResult = {
@@ -15,12 +16,31 @@ export function useGameOverview(gameId: string | null): UseGameOverviewResult {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!gameId) {
+      setData(null);
+      setError("ゲームIDが見つかりません。");
+      setLoading(false);
+      return;
+    }
+
+    const snapshot = readGameOverviewCache(gameId);
+    if (snapshot) {
+      setData(snapshot.data);
+      setError(snapshot.error ?? null);
+      if (!snapshot.isStale) {
+        setLoading(false);
+        return;
+      }
+    } else {
+      setData(null);
+      setError(null);
+    }
+
     let cancelled = false;
 
     const load = async () => {
-      setLoading(true);
       try {
-        const result = await getGameOverview(gameId);
+        const result = await getGameOverview(gameId, { force: true });
         if (cancelled) return;
         setData(result.data);
         setError(result.error ?? null);
@@ -36,6 +56,7 @@ export function useGameOverview(gameId: string | null): UseGameOverviewResult {
       }
     };
 
+    setLoading(true);
     void load();
 
     return () => {
