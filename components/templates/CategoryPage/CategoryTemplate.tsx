@@ -168,24 +168,24 @@ const CategoryTemplate: React.FC<CategoryTemplateProps> = memo(({
             onGameLeave={onGameLeave}
           />
 
-          {/* 無限スクロール用のトリガー要素 */}
-          {hasMore && (
-            <Box ref={loadMoreRef} py={8} textAlign="center">
-              {isLoading && (
-                <Flex justify="center" align="center" gap={3}>
-                  <Spinner size="lg" color="blue.400" />
-                  <Text color="gray.400">読み込み中...</Text>
-                </Flex>
-              )}
-            </Box>
-          )}
+{/* 無限スクロール用のトリガー要素 */}
+{hasMore && filteredGames.length > 0 && (  // ← filteredGames.length > 0 を追加
+  <Box ref={loadMoreRef} py={8} textAlign="center">
+    {isLoading && (
+      <Flex justify="center" align="center" gap={3}>
+        <Spinner size="lg" color="blue.400" />
+        <Text color="gray.400">読み込み中...</Text>
+      </Flex>
+    )}
+  </Box>
+)}
 
-          {/* すべて読み込み完了メッセージ */}
-          {!hasMore && filteredGames.length > 0 && (
-            <Box py={8} textAlign="center">
-              <Text color="gray.400">すべてのゲームを表示しました</Text>
-            </Box>
-          )}
+{/* すべて読み込み完了メッセージ */}
+{!hasMore && filteredGames.length > 0 && (
+  <Box py={8} textAlign="center">
+    <Text color="gray.400">すべてのゲームを表示しました</Text>
+  </Box>
+)}
         </Stack>
       </Container>
     </Box>
