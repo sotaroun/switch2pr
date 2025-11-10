@@ -61,12 +61,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
   }, [searchText, games]);
 
   /**
-   * 検索テキスト変更時の処理
+   * 検索結果選択時の処理
    */
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchText(value);
+  const handleSelectResult = useCallback((result: SearchResult) => {
+    onSelectGame(result.id);
+    setSearchText('');
+    setIsOpen(false);
     setSelectedIndex(0);
-    setIsOpen(value.trim() !== '');
+  }, [onSelectGame]);
+
+  /**
+   * 検索候補リストを閉じる
+   */
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
   }, []);
 
   /**
@@ -84,7 +92,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex(prev =>
           prev < searchResults.length - 1 ? prev + 1 : prev
         );
         break;
@@ -114,20 +122,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
   }, [handleClose, handleSelectResult, searchResults, searchText, selectedIndex]);
 
   /**
-   * 検索結果選択時の処理
+   * 検索テキスト変更時の処理
    */
-  const handleSelectResult = useCallback((result: SearchResult) => {
-    onSelectGame(result.id);
-    setSearchText('');
-    setIsOpen(false);
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchText(value);
     setSelectedIndex(0);
-  }, [onSelectGame]);
-
-  /**
-   * 検索候補リストを閉じる
-   */
-  const handleClose = useCallback(() => {
-    setIsOpen(false);
+    setIsOpen(value.trim() !== '');
   }, []);
 
   /**

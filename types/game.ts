@@ -26,9 +26,9 @@ export type GameCategory =
   | 'タクティカル'
   | 'ハクスラ'
   | 'クイズ'
-  | 'アクション' 
-  | 'ファンタジー' 
-  | 'サイエンスフィクション' 
+  | 'アクション'
+  | 'ファンタジー'
+  | 'サイエンスフィクション'
   | 'ホラー'
   | 'スリラー'
   | 'サバイバル'
@@ -97,68 +97,68 @@ export const ALL_GAME_CATEGORIES: readonly GameCategory[] = [
   '恋愛'
 ] as const;
 
-/**
- * カテゴリが有効かチェックする型ガード
- */
 export function isValidGameCategory(value: string): value is GameCategory {
   return ALL_GAME_CATEGORIES.includes(value as GameCategory);
 }
 
+/**
+ * 対応プラットフォームの型定義
+ */
 export type GamePlatform =
-  | "Nintendo Switch"
-  | "PlayStation 5"
-  | "PlayStation 4"
-  | "Xbox Series X|S"
-  | "Xbox One"
-  | "PC"
-  | "Steam Deck"
-  | "Mobile"
-  | "その他";
+  | 'Nintendo Switch 2'
+  | 'Nintendo Switch'
+  | 'PlayStation 5'
+  | 'PlayStation 4'
+  | 'Xbox Series X|S'
+  | 'PC(Windows)'
+  | 'Mac'
+  | 'Android'
+  | 'iOS';
 
 export const ALL_GAME_PLATFORMS: readonly GamePlatform[] = [
-  "Nintendo Switch",
-  "PlayStation 5",
-  "PlayStation 4",
-  "Xbox Series X|S",
-  "Xbox One",
-  "PC",
-  "Steam Deck",
-  "Mobile",
-  "その他",
+  'Nintendo Switch 2',
+  'Nintendo Switch',
+  'PlayStation 5',
+  'PlayStation 4',
+  'PC(Windows)',
+  'Mac',
+  'Android',
+  'iOS',
 ] as const;
 
+export function isValidGamePlatform(value: string): value is GamePlatform {
+  return ALL_GAME_PLATFORMS.includes(value as GamePlatform);
+}
+
 /**
- * ゲームの基本情報を表す型
+ * 開発・販売会社の型定義
+ */
+export interface GameCompany {
+  name: string;
+  country?: string;
+}
+
+/**
+ * ゲーム情報の型定義
  */
 export interface Game {
-  /** ゲームの一意識別子（ASIN） */
   id: string;
-  /** ゲームタイトル */
   title: string;
-  /** カテゴリ一覧（厳密な型定義） */
   categories: GameCategory[];
-  /** ゲームアイコンのURL（オプション） */
-  iconUrl?: string;
-  /** 概要文（オプション） */
-  summary?: string;
-  /** トップページに表示するか */
-  visibleOnHome?: boolean;
-  /** カテゴリページに表示するか */
-  visibleOnCategory?: boolean;
-  /** 表示名称の上書き */
-  displayName?: string | null;
-  /** 並び順 */
-  sortOrder?: number | null;
-  /** ホーム新作セクションに出すか */
-  featuredNewRelease?: boolean;
-  /** ホーム人気セクションに出すか */
-  featuredPopular?: boolean;
-  /** ホームおすすめセクションに出すか */
-  featuredRecommended?: boolean;
-  /** 対応プラットフォーム */
   platforms?: GamePlatform[];
-  /** 初回リリース日のunix秒（ある場合） */
-  firstReleaseDate?: number | null;
+  developer?: GameCompany;
+  publisher?: GameCompany;
+  iconUrl?: string;
+  summary?: string;
+  releaseDate?: string; // ISO形式
+  firstReleaseDate?: number | null; // UNIX秒
+  visibleOnHome?: boolean;
+  visibleOnCategory?: boolean;
+  displayName?: string | null;
+  sortOrder?: number | null;
+  featuredNewRelease?: boolean;
+  featuredPopular?: boolean;
+  featuredRecommended?: boolean;
 }
 
 /**

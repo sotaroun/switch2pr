@@ -241,31 +241,39 @@ const HomePage: React.FC = () => {
 
   // /api/games は Supabase + IGDB の合成結果。初期表示と fallback 双方を考慮している。
   const fetchGames = useCallback(async (signal?: AbortSignal) => {
-    setIsGamesLoading(true);
-    try {
-      const response = await fetch("/api/games", {
-        signal,
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch games: ${response.status}`);
-      }
-      const data = (await response.json()) as Game[];
-      setGames(data);
-      setError(null);
-    } catch (err) {
-      if ((err as Error)?.name === "AbortError") {
-        return;
-      }
-      if ((err as Error)?.name === "AbortError") {
-        return;
-      }
-      console.error("ゲーム一覧の取得に失敗しました", err);
-      setError("ゲーム情報の取得に失敗しました。");
-    } finally {
-      setIsGamesLoading(false);
+  setIsGamesLoading(true);
+  try {
+    const response = await fetch("/api/games", {
+      signal,
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch games: ${response.status}`);
     }
-  }, []);
+    const data = await response.json();
+    console.log("🎮 /api/games response:", data);
+
+    // レスポンスが配列でない場合に備えて安全に処理
+    const gamesArray = Array.isArray(data)
+      ? data
+      : data.items || data.data || [];
+
+    if (!Array.isArray(gamesArray)) {
+      throw new Error("Invalid games data format");
+    }
+
+    setGames(gamesArray);
+    setError(null);
+  } catch (err) {
+    if ((err as Error)?.name === "AbortError") {
+      return;
+    }
+    console.error("ゲーム一覧の取得に失敗しました", err);
+    setError("ゲーム情報の取得に失敗しました。");
+  } finally {
+    setIsGamesLoading(false);
+  }
+}, []);
 
   const fetchManufacturerInitial = useCallback(
     async (config: ManufacturerConfig) => {

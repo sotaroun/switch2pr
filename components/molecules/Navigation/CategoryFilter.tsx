@@ -3,15 +3,11 @@ import {
   Box, 
   Stack,
   Text, 
-  Heading, 
   Wrap, 
   WrapItem,
-  Badge,
-  Flex
+  Badge
 } from "@chakra-ui/react";
-import { MdClear } from "react-icons/md";
 import CategoryButton from "@/components/atoms/buttons/CategoryButton";
-import ActionButton from "@/components/atoms/buttons/ActionButton";
 import { GameCategory } from "@/types/game";
 
 interface CategoryFilterProps {
@@ -21,32 +17,18 @@ interface CategoryFilterProps {
   selectedCategories: GameCategory[];
   /** カテゴリ選択切り替え時のハンドラー */
   onCategoryToggle: (category: GameCategory) => void;
-  /** 全解除時のハンドラー */
-  onReset: () => void;
 }
 
 /**
  * カテゴリフィルター機能を提供するMoleculeコンポーネント
  * - 複数選択可能なカテゴリボタン群
  * - 選択状態の表示
- * - 全解除ボタン
  * - アニメーション効果
- * 
- * @example
- * ```tsx
- * <CategoryFilter
- *   categories={ALL_GAME_CATEGORIES}
- *   selectedCategories={['アクション']}
- *   onCategoryToggle={(category) => handleToggle(category)}
- *   onReset={handleReset}
- * />
- * ```
  */
 const CategoryFilter: React.FC<CategoryFilterProps> = ({
   categories,
   selectedCategories,
-  onCategoryToggle,
-  onReset
+  onCategoryToggle
 }) => {
   const [animatingButtons, setAnimatingButtons] = useState<Set<GameCategory>>(new Set());
 
@@ -72,13 +54,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   }, [onCategoryToggle]);
 
   /**
-   * リセットボタンクリック時の処理
-   */
-  const handleReset = useCallback(() => {
-    onReset();
-  }, [onReset]);
-
-  /**
    * キーボード操作（Enter/Space）の処理
    */
   const handleKeyDown = useCallback((e: React.KeyboardEvent, action: () => void) => {
@@ -92,20 +67,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
     <Box as="section" mb={8} aria-labelledby="category-filter-title">
       {/* フィルター説明 */}
       <Stack direction="column" gap={6} textAlign="center" mb={6}>
-        <Stack direction="column" gap={2}>
-          <Heading 
-            id="category-filter-title"
-            as="h2" 
-            size="xl" 
-            color="white"
-          >
-            カテゴリで絞り込み
-          </Heading>
-          <Text color="gray.400" fontSize="sm">
-            カテゴリを選択してゲームを絞り込めます
-          </Text>
-        </Stack>
-
         {/* 現在の選択表示 */}
         <Stack direction="column" gap={3}>
           <Text color="blue.400" fontWeight="medium" role="status" aria-live="polite">
@@ -134,8 +95,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
       {/* カテゴリボタン群 */}
       <Wrap 
         justify="center" 
-        gap={3} 
-        mb={6}
+        gap={3}
         role="group"
         aria-label="カテゴリ選択ボタン"
       >
@@ -157,19 +117,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
           );
         })}
       </Wrap>
-
-      {/* 全解除ボタン */}
-      <Flex justify="center">
-        <ActionButton
-          onClick={handleReset}
-          onKeyDown={(e) => handleKeyDown(e, handleReset)}
-          colorScheme="red"
-          icon={MdClear}
-          ariaLabel="すべてのカテゴリを解除"
-        >
-          全解除
-        </ActionButton>
-      </Flex>
     </Box>
   );
 };

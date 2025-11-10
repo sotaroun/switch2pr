@@ -1,10 +1,10 @@
 import React, { memo } from 'react';
 import FilterButton from './FilterButton';
-import { GameCategory } from "@/types/game";
+import { GamePlatform } from "@/types/game";
 
-interface CategoryButtonProps {
-  /** カテゴリ名（厳密な型） */
-  category: GameCategory;
+interface PlatformButtonProps {
+  /** プラットフォーム名（厳密な型） */
+  platform: GamePlatform;
   /** 選択状態 */
   isSelected: boolean;
   /** アニメーション中かどうか */
@@ -18,23 +18,23 @@ interface CategoryButtonProps {
 }
 
 /**
- * カテゴリ選択ボタンのAtomコンポーネント
+ * プラットフォーム選択ボタンのAtomコンポーネント
  * FilterButtonのラッパー
  */
-const CategoryButton: React.FC<CategoryButtonProps> = memo((props) => {
+const PlatformButton: React.FC<PlatformButtonProps> = memo((props) => {
   return (
     <FilterButton
-      label={props.category}
+      label={props.platform}
       isSelected={props.isSelected}
       isAnimating={props.isAnimating}
       onClick={props.onClick}
       onKeyDown={props.onKeyDown}
       animationDelay={props.animationDelay}
-      ariaLabel={`${props.category}カテゴリを${props.isSelected ? '解除' : '選択'}`}
+      ariaLabel={`${props.platform}を${props.isSelected ? '解除' : '選択'}`}
     />
   );
 });
 
-CategoryButton.displayName = 'CategoryButton';
+PlatformButton.displayName = 'PlatformButton';
 
-export default CategoryButton;
+export default PlatformButton;

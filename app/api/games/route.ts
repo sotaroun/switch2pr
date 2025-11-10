@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 
 import { buildCoverUrl, igdbRequest } from "@/lib/api/igdb";
 import { getSupabaseServiceRoleClient } from "@/lib/api/supabase";
-import { mapGenres, mapPlatforms } from "@/lib/gameMetadata";
-import type { Game } from "@/types/game";
+import type { Game, GameCategory } from "@/types/game";
 
 const GAME_FIELDS = [
   "id",
@@ -11,6 +10,8 @@ const GAME_FIELDS = [
   "summary",
   "cover.image_id",
   "genres.name",
+  "platforms.name",
+  "first_release_date",
   "total_rating",
   "total_rating_count",
   "platforms.abbreviation",
@@ -30,98 +31,112 @@ type RawGame = {
   summary?: string | null;
   cover?: { image_id?: string | null } | null;
   genres?: Array<{ name?: string | null }> | null;
-  platforms?: Array<{ abbreviation?: string | null; name?: string | null }> | null;
 };
+
+const GENRE_TO_CATEGORY: Record<string, GameCategory> = {
+  "Role-playing (RPG)": "RPG",
+  Adventure: "アクション",
+  Action: "アクション",
+  Platform: "アクション",
+  "Hack and slash/Beat 'em up": "アクション",
+  Fighting: "アクション",
+  Shooter: "シューター",
+  Sport: "スポーツ",
+  Racing: "スポーツ",
+  Puzzle: "パズル",
+  "Quiz/Trivia": "パズル",
+  Music: "アクション",
+  Simulator: "スポーツ",
+  Strategy: "RPG",
+  "Real Time Strategy (RTS)": "RPG",
+  Tactical: "RPG",
+  "Turn-based strategy (TBS)": "RPG",
+  Indie: "アクション",
+  Arcade: "アクション",
+};
+
+const DEFAULT_CATEGORY: GameCategory = "アクション";
+
+function mapGenresToCategories(
+  genres: Array<{ name?: string | null }> | null | undefined
+): GameCategory[] {
+  if (!genres) return [DEFAULT_CATEGORY];
+
+  const mapped = genres
+    .map((genre) => {
+      const name = genre?.name;
+      if (!name) return undefined;
+      return GENRE_TO_CATEGORY[name] ?? DEFAULT_CATEGORY;
+    })
+    .filter((category): category is GameCategory => Boolean(category));
+
+  return mapped.length > 0 ? Array.from(new Set(mapped)) : [DEFAULT_CATEGORY];
+}
 
 export async function GET() {
   try {
-    const supabase = getSupabaseServiceRoleClient();
+    let distinctIds: number[] = [];
 
-    const { data: featuredRows, error: featuredError } = await supabase
-      .from("featured_games")
-      .select(
-        "igdb_id, display_name, visible_on_home, visible_on_category, sort_order, is_new_release, is_popular, is_recommended"
-      )
-      .order("sort_order", { ascending: true, nullsFirst: false });
+    try {
+      const supabase = getSupabaseServiceRoleClient();
+      const { data: gameIdRows, error: supabaseError } = await supabase
+        .from("oneliner_reviews")
+        .select("game_id")
+        .eq("status", "approved");
 
-    let targetIds: number[] = [];
-    const featuredMap = new Map<
-      number,
-      {
-        display_name?: string | null;
-        visible_on_home?: boolean | null;
-        visible_on_category?: boolean | null;
-        is_new_release?: boolean | null;
-        is_popular?: boolean | null;
-        is_recommended?: boolean | null;
-        sort_order?: number | null;
+      if (supabaseError) {
+        console.warn("Failed to fetch game ids from Supabase", supabaseError);
       }
-    >();
 
-    if (!featuredError && featuredRows && featuredRows.length > 0) {
-      targetIds = featuredRows
-        .map((row) => Number(row.igdb_id))
-        .filter((value) => Number.isFinite(value) && value > 0);
-
-      featuredRows.forEach((row) => {
-        featuredMap.set(Number(row.igdb_id), {
-          display_name: row.display_name,
-          visible_on_home: row.visible_on_home,
-          visible_on_category: row.visible_on_category,
-          is_new_release: row.is_new_release,
-          is_popular: row.is_popular,
-          is_recommended: row.is_recommended,
-          sort_order: row.sort_order,
-        });
-      });
+      distinctIds = Array.from(
+        new Set(
+          (gameIdRows ?? [])
+            .map((row) => Number(row.game_id))
+            .filter((value) => Number.isFinite(value) && value > 0)
+        )
+      );
+    } catch (supabaseError) {
+      console.warn(
+        "Supabase is not configured. Falling back to popular IGDB games.",
+        supabaseError
+      );
     }
 
-    const useFeatured = targetIds.length > 0;
+    // ✅ 固定値を設定
+    const limit = 20;
+    const offset = 0;
 
-    const igdbQuery = useFeatured
-      ? `
-          fields ${GAME_FIELDS.join(", ")};
-          where id = (${targetIds.join(",")});
-          limit ${targetIds.length};
-        `
-      : POPULAR_GAMES_QUERY;
+    const igdbQuery =
+      distinctIds.length > 0
+        ? `
+            fields ${GAME_FIELDS.join(", ")};
+            where id = (${distinctIds.join(",")});
+            limit ${distinctIds.length};
+          `
+        : POPULAR_GAMES_QUERY;
 
     const response = await igdbRequest<RawGame[]>("games", igdbQuery);
 
-    const games: Game[] = response
-      .map((game) => {
-        const config = featuredMap.get(game.id);
-        return {
-          id: String(game.id),
-          title: config?.display_name ?? game.name,
-          categories: mapGenres(game.genres ?? null),
-          platforms: mapPlatforms(game.platforms ?? null),
-          iconUrl: buildCoverUrl(game.cover?.image_id ?? undefined),
-          summary: game.summary ?? undefined,
-          visibleOnHome: config?.visible_on_home ?? !useFeatured,
-          visibleOnCategory: config?.visible_on_category ?? !useFeatured,
-          featuredNewRelease: config?.is_new_release ?? false,
-          featuredPopular: config?.is_popular ?? false,
-          featuredRecommended: config?.is_recommended ?? false,
-          firstReleaseDate: game.first_release_date ?? null,
-          displayName: config?.display_name ?? null,
-          sortOrder: config?.sort_order ?? null,
-        } satisfies Game;
-      })
-      .sort((a, b) => {
-        const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-        const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-        if (orderA === orderB) {
-          return a.title.localeCompare(b.title);
-        }
-        return orderA - orderB;
-      });
+    const games: Game[] = response.map((game) => ({
+      id: String(game.id),
+      title: game.name,
+      categories: mapGenresToCategories(game.genres ?? null),
+      iconUrl: buildCoverUrl(game.cover?.image_id ?? undefined),
+      summary: game.summary ?? undefined,
+    }));
 
-    return NextResponse.json(games, {
-      headers: {
-        "Cache-Control": "public, max-age=120",
+    return NextResponse.json(
+      {
+        games,
+        hasMore: response.length === limit,
+        offset: offset + response.length,
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "public, max-age=120",
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to fetch games from IGDB", error);
     return NextResponse.json(
