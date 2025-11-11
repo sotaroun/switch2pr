@@ -36,7 +36,6 @@ const SearchPage: React.FC = () => {
   
   // 検索関連
   const [searchText, setSearchText] = useState('');
-  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   
   // オーバーレイコメント
   const [hoveredGameId, setHoveredGameId] = useState<string | null>(null);
@@ -154,7 +153,6 @@ const SearchPage: React.FC = () => {
     const game = games.find(g => g.id === gameId);
     if (game) {
       setSearchText(game.title);
-      setSelectedGameId(gameId);
     }
   }, [games]);
 
