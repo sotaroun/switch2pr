@@ -57,7 +57,6 @@ export const Header = ({ menus = [] }: HeaderProps) => {
   const [hoveredTitle, setHoveredTitle] = useState(false);
   const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isDesktop = useBreakpointValue({ base: false, md: true });
 
   return (
     <header>
