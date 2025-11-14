@@ -44,11 +44,10 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onSubmit,
 }) => {
   return (
-    <HStack spacing={2} w={width} maxW="100%" align="stretch">
-      <InputGroup
-        flex="1"
-        startElement={<Icon as={SearchIcon} color="gray.400" boxSize={4} />}
-        startElementProps={{ pointerEvents: "none" }}
+    <HStack gap={2} w={width} maxW="100%" align="stretch">
+  <InputGroup
+    flex="1"
+    startElement={<Icon as={SearchIcon} color="gray.400" boxSize={4} />}
       >
         <Input
           value={value}
