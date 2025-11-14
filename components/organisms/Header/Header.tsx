@@ -6,7 +6,6 @@ import {
   Flex,
   Link as ChakraLink,
   IconButton,
-  useBreakpointValue,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu as MenuIcon, X as XIcon } from "lucide-react";
