@@ -13,6 +13,7 @@ const GAME_FIELDS = [
   "genres.name",
   "platforms.abbreviation",
   "platforms.name",
+  "first_release_date",
 ];
 
 const POPULAR_BACKUP_QUERY = `
@@ -28,6 +29,7 @@ type RawGame = {
   cover?: { image_id?: string | null } | null;
   genres?: Array<{ name?: string | null }> | null;
   platforms?: Array<{ abbreviation?: string | null; name?: string | null }> | null;
+  first_release_date?: number | null;
 };
 
 export async function GET() {
