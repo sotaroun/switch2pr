@@ -100,10 +100,10 @@ const ManufacturerSection: React.FC<ManufacturerSectionProps> = React.memo(
     }, [config, onRetry]);
 
     return (
-      <Box
-        ref={(element) => attachRef(config.id, element)}
-        data-manufacturer-id={config.id}
-      >
+        <Box
+    ref={(element: HTMLDivElement | null) => attachRef(config.id, element)}
+    data-manufacturer-id={config.id}
+  >
         <HorizontalGameList
           title={`${config.label}の新着ゲーム`}
           games={state.items}

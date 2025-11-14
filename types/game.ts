@@ -110,20 +110,19 @@ export type GamePlatform =
   | 'PlayStation 5'
   | 'PlayStation 4'
   | 'Xbox Series X|S'
-  | 'PC(Windows)'
-  | 'Mac'
-  | 'Android'
-  | 'iOS';
+  | 'PC'
+  | 'Mobile'
+  | 'その他';
 
 export const ALL_GAME_PLATFORMS: readonly GamePlatform[] = [
   'Nintendo Switch 2',
   'Nintendo Switch',
   'PlayStation 5',
   'PlayStation 4',
-  'PC(Windows)',
-  'Mac',
-  'Android',
-  'iOS',
+  'PC',
+  'Mobile',
+  'その他',
+  'Xbox Series X|S',
 ] as const;
 
 export function isValidGamePlatform(value: string): value is GamePlatform {

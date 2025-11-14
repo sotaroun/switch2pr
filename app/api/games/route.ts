@@ -31,6 +31,8 @@ type RawGame = {
   summary?: string | null;
   cover?: { image_id?: string | null } | null;
   genres?: Array<{ name?: string | null }> | null;
+  platforms?: Array<{ abbreviation?: string | null; name?: string | null }> | null;
+  first_release_date?: number | null;
 };
 
 const GENRE_TO_CATEGORY: Record<string, GameCategory> = {
