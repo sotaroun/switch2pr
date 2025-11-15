@@ -102,6 +102,7 @@ const ManufacturerSection: React.FC<ManufacturerSectionProps> = React.memo(
     return (
         <Box
     ref={(element: HTMLDivElement | null) => attachRef(config.id, element)}
+    mt="10"
     data-manufacturer-id={config.id}
   >
         <HorizontalGameList
