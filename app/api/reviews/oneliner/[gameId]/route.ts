@@ -22,7 +22,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ gameId: string
 
   if (error) {
     console.error("Failed to fetch oneliner reviews", error);
-    return NextResponse.json({ error: "failed_to_fetch" }, { status: 500 });
+    return NextResponse.json({ error: "failed_to_fetch", message: error.message }, { status: 500 });
   }
 
   const comments: OverlayComment[] = (data ?? []).map((item) => ({
